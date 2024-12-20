@@ -14,6 +14,11 @@ Server Dashboard is a web application that allows users to manage server service
   - Download log files.
   - Stream log content in real-time.
 
+## Installation prerequired
+
+```sh
+apt install php-sqlite3 sqlite3 composer
+```
 
 ## Installation
 
@@ -33,6 +38,9 @@ Server Dashboard is a web application that allows users to manage server service
 4. Start the server:
     ```sh
     php -S localhost:8000
+    ```
+    ```sh
+    php -S 0.0.0.0:8000
     ```
 
 5. Open your browser and navigate to `http://localhost:8000`.
