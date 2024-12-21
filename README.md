@@ -14,6 +14,18 @@ Server Dashboard is a web application that allows users to manage server service
   - Download log files.
   - Stream log content in real-time.
 
+Service Management
+
+GET /api/services: List all services and their statuses.
+POST /api/services: Add a new service to monitor.
+PUT /api/services/:name: Restart or stop a specific service.
+DELETE /api/services/:name: Remove a service.
+Log Management
+
+GET /api/logs: List available log files.
+GET /api/logs/:name: Download a specific log file.
+GET /api/logs/:name/stream: Stream log content in real-time.
+
 ## Installation prerequired
 
 ```sh

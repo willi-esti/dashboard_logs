@@ -1,45 +1,75 @@
-// Update the last updated timestamp
-document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
 
-// Add new service functionality
-const serviceList = document.getElementById('serviceList');
-const addServiceForm = document.getElementById('addServiceForm');
+// Web.js: Handles DOM interactions and updates dynamically
 
+// Populate service list
+function populateServiceList(services) {
+    const serviceList = document.getElementById('serviceList');
+    serviceList.innerHTML = ''; // Clear existing services
 
-// Populate log files dynamically (mockup example)
-const logFiles = ["server.log", "errors.log", "access.log"];
-const logFileList = document.getElementById('logFileList');
-const logContent = document.getElementById('logContent');
-
-logFiles.forEach(file => {
-    const listItem = document.createElement('li');
-    listItem.innerHTML = `
-        <button class="btn btn-link" onclick="showLogContent('${file}')">${file}</button>
-        <button class="btn btn-sm btn-secondary" onclick="downloadLog('${file}')">Download</button>
-    `;
-    logFileList.appendChild(listItem);
-});
-
-function showLogContent(file) {
-    // Mockup content (replace with actual fetch logic)
-    const mockContent = {
-        "server.log": "Server started at 12:00 PM\nListening on port 8080...",
-        "errors.log": "[Error] Failed to connect to database\n[Error] Unauthorized access attempt detected",
-        "access.log": "192.168.0.1 - - [20/Dec/2024:12:00:00 +0000] \"GET /index.html HTTP/1.1\" 200 1024"
-    };
-
-    logContent.hidden = false;
-    logContent.textContent = mockContent[file] || "Log content not found.";
-}
-
-function downloadLog(file) {
-    // Replace with actual download logic
-    alert(`Downloading: ${file}`);
-}
-
-// Remove service functionality
-document.querySelectorAll('.remove-service').forEach(button => {
-    button.addEventListener('click', (e) => {
-        e.target.closest('.col-md-4').remove();
+    services.forEach(service => {
+        const serviceCard = document.createElement('div');
+        serviceCard.className = 'col-md-4';
+        serviceCard.innerHTML = `
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <span class="status-indicator ${service.active ? 'status-active' : 'status-inactive'}"></span>
+                    <strong>${service.name}</strong>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-primary" onclick="restartService('${service.name}')">Restart</button>
+                        <button class="btn btn-sm btn-secondary" onclick="stopService('${service.name}')">Stop</button>
+                        <button class="btn btn-sm btn-danger" onclick="removeService('${service.name}')">Remove</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        serviceList.appendChild(serviceCard);
     });
+}
+
+// Add new service
+document.getElementById('addServiceForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const serviceName = document.getElementById('serviceName').value;
+    const response = await addService(serviceName);
+    if (response.success) {
+        alert('Service added successfully!');
+        fetchServices();
+    } else {
+        alert('Error adding service: ' + response.error);
+    }
 });
+
+// Fetch and display logs
+function populateLogFiles(logFiles) {
+    const logFileList = document.getElementById('logFileList');
+    logFileList.innerHTML = ''; // Clear existing logs
+
+    logFiles.forEach(file => {
+        const logItem = document.createElement('li');
+        logItem.innerHTML = `<a href="#" onclick="viewLog('${file}')">${file}</a>`;
+        logFileList.appendChild(logItem);
+    });
+}
+
+// View selected log content
+async function viewLog(fileName) {
+    const response = await fetchLogContent(fileName);
+    const logContent = document.getElementById('logContent');
+    logContent.hidden = false;
+    logContent.innerHTML = `<pre>${response.content || 'Error fetching log content.'}</pre>`;
+}
+
+// Initial data fetch
+async function fetchServices() {
+    const services = await getServices();
+    populateServiceList(services);
+}
+
+async function fetchLogs() {
+    const logFiles = await getLogFiles();
+    populateLogFiles(logFiles);
+}
+
+// Run initial fetch
+fetchServices();
+fetchLogs();

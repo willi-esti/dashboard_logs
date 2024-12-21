@@ -1,87 +1,104 @@
 
-addServiceForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const serviceName = document.getElementById('serviceName').value;
+// Fetching.js: Handles API requests
 
-    if (serviceName) {
-        fetch('php/add_service.php', {
+const API_BASE_URL = '/api';
+
+// Fetch services
+async function getServices() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/services`, { method: 'GET' });
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching services:', error);
+        return [];
+    }
+}
+
+// Add a new service
+async function addService(serviceName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/services`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `name=${encodeURIComponent(serviceName)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                loadServices();
-                document.getElementById('serviceName').value = '';
-            } else {
-                alert('Error adding service.');
-            }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: serviceName })
         });
+        return await response.json();
+    } catch (error) {
+        console.error('Error adding service:', error);
+        return { success: false, error: error.message };
     }
-});
-
-
-function loadServices() {
-    fetch('php/fetch_services.php')
-        .then(response => response.json())
-        .then(services => {
-            serviceList.innerHTML = '';
-            services.forEach(service => {
-                const serviceCard = document.createElement('div');
-                serviceCard.className = 'col-md-4';
-                serviceCard.innerHTML = `
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <span class="status-indicator status-inactive"></span>
-                            <strong>${service.name}</strong>
-                            <div class="mt-2">
-                                <button class="btn btn-sm btn-primary">Restart</button>
-                                <button class="btn btn-sm btn-secondary">Stop</button>
-                                <button class="btn btn-sm btn-danger" onclick="removeService(${service.id})">Remove</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                serviceList.appendChild(serviceCard);
-            });
-        });
-}
-loadServices();
-
-
-function removeService(id) {
-    fetch('php/remove_service.php', {
-        method: 'DELETE',
-        body: `id=${id}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            loadServices();
-        } else {
-            alert('Error removing service.');
-        }
-    });
 }
 
-
-function showLogContent(file) {
-    logContent.hidden = false;
-    logContent.textContent = ""; // Clear previous content
-
-    function fetchLog() {
-        fetch(`php/stream-log.php?file=${file}`)
-            .then(response => response.text())
-            .then(data => {
-                logContent.textContent += data; // Append new lines
-                logContent.scrollTop = logContent.scrollHeight; // Auto-scroll to the bottom
-                fetchLog(); // Continuously fetch updates
-            })
-            .catch(error => {
-                logContent.textContent += "\n[Error fetching log content]";
-            });
+// Restart a service
+async function restartService(serviceName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/services`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'restart', service: serviceName })
+        });
+        const result = await response.json();
+        alert(result.status === 0 ? 'Service restarted successfully!' : 'Error restarting service.');
+        fetchServices();
+    } catch (error) {
+        console.error('Error restarting service:', error);
     }
+}
 
-    fetchLog();
+// Stop a service
+async function stopService(serviceName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/services`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'stop', service: serviceName })
+        });
+        const result = await response.json();
+        alert(result.status === 0 ? 'Service stopped successfully!' : 'Error stopping service.');
+        fetchServices();
+    } catch (error) {
+        console.error('Error stopping service:', error);
+    }
+}
+
+// Remove a service
+async function removeService(serviceName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/services`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ service: serviceName })
+        });
+        const result = await response.json();
+        alert(result.status === 0 ? 'Service removed successfully!' : 'Error removing service.');
+        fetchServices();
+    } catch (error) {
+        console.error('Error removing service:', error);
+    }
+}
+
+// Fetch log files
+async function getLogFiles() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching log files:', error);
+        return [];
+    }
+}
+
+// Fetch log content
+async function fetchLogContent(fileName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/logs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file: fileName })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching log content:', error);
+        return { content: 'Error fetching log content.' };
+    }
 }
