@@ -2,8 +2,18 @@
 <?php
 
 if ($requestMethod === 'GET') {
-    exec("systemctl list-units --type=service --no-pager", $output, $status);
-    jsonResponse(['status' => $status, 'services' => $output]);
+    // check in the database the list of serveces and systemclt them
+    $db = new PDO('sqlite:' . __DIR__ . '/../' . $_ENV['DB_PATH']);
+    $stmt = $db->prepare('SELECT * FROM services;');
+    $stmt->execute();
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $result = exec("systemctl is-active --quiet " . $row["name"] . " && echo 1 || echo 0", $output, $status);
+
+        $data[] = $row;
+        $data[count($data) - 1]['status'] = $result;
+    }
+
+    jsonResponse(['services' => $data]);
 } elseif ($requestMethod === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $action = sanitize($data['action']);

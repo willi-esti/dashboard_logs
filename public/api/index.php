@@ -6,13 +6,10 @@ require_once 'middleware.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
-//$decoded = verifyToken();
-
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requestUri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
 try {
-    //$user = $decoded->sub;
 
     ob_start();
     
@@ -21,9 +18,14 @@ try {
             require 'authenticate.php';
             break;
         case preg_match('/^api\/services$/', $requestUri):
+            $decoded = verifyToken();
+            //print_r($decoded);
+            $user = $decoded->sub;
             require 'services.php';
             break;
         case preg_match('/^api\/logs$/', $requestUri):
+            $decoded = verifyToken();
+            $user = $decoded->sub;
             require 'logs.php';
             break;
         /*case preg_match('/^api\/register$/', $requestUri):
@@ -34,7 +36,7 @@ try {
     }
 
     $response = ob_get_clean();
-    logApi($requestUri, $requestMethod, $user, $_REQUEST, $response, http_response_code());
+    //logApi($requestUri, $requestMethod, $user, $_REQUEST, $response, http_response_code());
     echo $response;
 } catch (Exception $e) {
     logError($e->getMessage());

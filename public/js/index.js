@@ -38,7 +38,10 @@ document.getElementById('registrationForm').addEventListener('submit', async (ev
     if (response.success) {
         // rediect to dashboard.php
         console.log('Registration successful!');
-        window.location.href = '/dashboard.php';
+        // set cookie token
+        document.cookie = `token=${response.token}; path=/`;
+
+        window.location.href = '/dashboard.html';
     } else {
         console.log(`Error: ${response.error}`);
     }

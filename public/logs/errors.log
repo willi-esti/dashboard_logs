@@ -15,3 +15,11 @@
 [2024-12-22 09:28:56] SQLSTATE[HY000] [14] unable to open database file
 [2024-12-22 09:30:33] SQLSTATE[HY000] [14] unable to open database file
 [2024-12-22 09:31:13] SQLSTATE[HY000] [14] unable to open database file
+[2024-12-22 17:00:36] {"files":["\/var\/log\/README","\/var\/log\/alternatives.log","\/var\/log\/apport.log","\/var\/log\/auth.log","\/var\/log\/auth.log.1","\/var\/log\/btmp","\/var\/log\/cloud-init-output.log","\/var\/log\/cloud-init.log","\/var\/log\/dmesg","\/var\/log\/dmesg.0","\/var\/log\/dpkg.log","\/var\/log\/kern.log","\/var\/log\/kern.log.1","\/var\/log\/lastlog","\/var\/log\/syslog","\/var\/log\/syslog.1","\/var\/log\/wtmp"]}
+[2024-12-22 17:00:36] {"error":"Unauthorized","message":"Expired token"}
+[2024-12-22 17:01:11] {"files":["\/var\/log\/README","\/var\/log\/alternatives.log","\/var\/log\/apport.log","\/var\/log\/auth.log","\/var\/log\/auth.log.1","\/var\/log\/btmp","\/var\/log\/cloud-init-output.log","\/var\/log\/cloud-init.log","\/var\/log\/dmesg","\/var\/log\/dmesg.0","\/var\/log\/dpkg.log","\/var\/log\/kern.log","\/var\/log\/kern.log.1","\/var\/log\/lastlog","\/var\/log\/syslog","\/var\/log\/syslog.1","\/var\/log\/wtmp"]}
+[2024-12-22 17:01:11] {"error":"Unauthorized","message":"Expired token"}
+[2024-12-22 17:01:35] {"error":"Unauthorized","message":"Authorization header is missing"}
+[2024-12-22 17:01:35] {"error":"Unauthorized","message":"Expired token"}
+[2024-12-22 17:02:15] {"error":"Unauthorized","message":"Expired token"}
+[2024-12-22 17:02:15] {"error":"Unauthorized","message":"Expired token"}

@@ -6,48 +6,6 @@ use Firebase\JWT\JWT;
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
-function authenticate()
-{
-    $headers = getallheaders();
-    if (empty($headers['Authorization'])) {
-        jsonResponse(['error' => 'Unauthorized', 'message' => 'Authorization header is missing'], 401);
-        exit;
-    }
-    
-    $authHeader = explode(' ', $headers['Authorization']);
-    $authType = $authHeader[0];
-    if ($authType !== 'Basic') {
-        jsonResponse(['error' => 'Unauthorized', 'message' => 'Authorization type is not Basic'], 401);
-        exit;
-    }
-    list($username, $password) = explode(':', base64_decode($authHeader[1]));
-    
-    
-    try {
-        $db = new PDO('sqlite:' . __DIR__ . '/../' . $_ENV['DB_PATH']);
-        $stmt = $db->prepare('SELECT password FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        $hashedPassword = $stmt->fetchColumn(); 
-        
-        //echo password_hash($password, PASSWORD_DEFAULT);
-
-        if (!$hashedPassword || !password_verify($password, $hashedPassword)) {
-            jsonResponse(['error' => 'Invalid credentials', 'message' => 'Username or password is incorrect'], 401);
-        } else {
-            $payload = [
-                'iss' => $_ENV['JWT_ISSUER'],
-                'iat' => time(),
-                'exp' => time() + 3600, // Token expires in 1 hour
-                'sub' => $username
-            ];
-            $jwt = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
-            jsonResponse(['token' => $jwt, 'success' => 'Authentication successful']);
-        }
-    } catch (PDOException $e) {
-        logError($e->getMessage());
-        jsonResponse(['error' => 'Authentication failed'], 500);
-    }
-}
 
 function getUsernameFromAuthHeader()
 {
@@ -64,6 +22,7 @@ function jsonResponse($data, $status = 200)
 {
     http_response_code($status);
     header('Content-Type: application/json');
+    logError(json_encode($data));
     echo json_encode($data);
     exit;
 }
@@ -71,10 +30,11 @@ function jsonResponse($data, $status = 200)
 function logError($message)
 {
     // create logs directory if it doesn't exist
-    if (!file_exists(__DIR__ . '/../logs')) {
-        mkdir(__DIR__ . '/../logs');
+    $logDir = __DIR__ . '/../../logs';
+    if (!file_exists($logDir)) {
+        mkdir($logDir);
     }
-    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, __DIR__ . '/../logs/errors.log');
+    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $logDir . '/errors.log');
 }
 
 function logApi($endpoint, $method, $user, $request, $response, $statusCode)

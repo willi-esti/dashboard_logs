@@ -1,75 +1,50 @@
-
 // Web.js: Handles DOM interactions and updates dynamically
 
-// Populate service list
-function populateServiceList(services) {
-    const serviceList = document.getElementById('serviceList');
-    serviceList.innerHTML = ''; // Clear existing services
-
-    services.forEach(service => {
-        const serviceCard = document.createElement('div');
-        serviceCard.className = 'col-md-4';
-        serviceCard.innerHTML = `
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <span class="status-indicator ${service.active ? 'status-active' : 'status-inactive'}"></span>
-                    <strong>${service.name}</strong>
-                    <div class="mt-2">
-                        <button class="btn btn-sm btn-primary" onclick="restartService('${service.name}')">Restart</button>
-                        <button class="btn btn-sm btn-secondary" onclick="stopService('${service.name}')">Stop</button>
-                        <button class="btn btn-sm btn-danger" onclick="removeService('${service.name}')">Remove</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        serviceList.appendChild(serviceCard);
-    });
+function redirect(error) {
+    console.log("redirect");
+    createAlert(error, 'error');
 }
 
-// Add new service
-document.getElementById('addServiceForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const serviceName = document.getElementById('serviceName').value;
-    const response = await addService(serviceName);
-    if (response.success) {
-        alert('Service added successfully!');
-        fetchServices();
-    } else {
-        alert('Error adding service: ' + response.error);
+function createAlert(message, type = 'success') {
+    const alertDiv = document.createElement('div');
+    console.log("createAlert");
+    alertType = type;
+    if (type === 'error') {
+        alertName = 'Error';
+        alertType = 'danger';
     }
-});
+    else if (type === 'success') {
+        alertName = 'Success';
+    }
+    else {
+        alertName = 'Info';
+    }
+    alertDiv.className = `alert alert-${alertType} alert-dismissible fade show`;
+    alertDiv.style.position = 'fixed';
+    alertDiv.style.bottom = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        <strong>${alertName}:</strong> ${message}
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.location.href='/'">Go back to login</button>
+    `;
+    document.body.appendChild(alertDiv);
+}
+//createAlert('Welcome to the dashboard!', 'error');
 
-// Fetch and display logs
-function populateLogFiles(logFiles) {
-    const logFileList = document.getElementById('logFileList');
-    logFileList.innerHTML = ''; // Clear existing logs
-
-    logFiles.forEach(file => {
-        const logItem = document.createElement('li');
-        logItem.innerHTML = `<a href="#" onclick="viewLog('${file}')">${file}</a>`;
-        logFileList.appendChild(logItem);
-    });
+function dismissAlert(button) {
+    const alertDiv = button.parentElement;
+    alertDiv.classList.remove('show');
+    alertDiv.classList.add('hide');
+    setTimeout(() => {
+        document.body.removeChild(alertDiv);
+    }, 500); // Wait for the hide transition to complete
 }
 
-// View selected log content
-async function viewLog(fileName) {
-    const response = await fetchLogContent(fileName);
-    const logContent = document.getElementById('logContent');
-    logContent.hidden = false;
-    logContent.innerHTML = `<pre>${response.content || 'Error fetching log content.'}</pre>`;
+function redirectIfUnauthorized() {
+    if (!document.cookie.includes('token')) {
+        redirect('No token found');
+    }
 }
-
-// Initial data fetch
-async function fetchServices() {
-    const services = await getServices();
-    populateServiceList(services);
-}
-
-async function fetchLogs() {
-    const logFiles = await getLogFiles();
-    populateLogFiles(logFiles);
-}
-
-// Run initial fetch
-fetchServices();
-fetchLogs();
+redirectIfUnauthorized();

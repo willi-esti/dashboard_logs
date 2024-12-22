@@ -5,13 +5,25 @@ const API_BASE_URL = '/api';
 
 // Fetch services
 async function getServices() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/services`, { method: 'GET' });
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching services:', error);
-        return [];
-    }
+    const response = await fetch(`${API_BASE_URL}/services`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+        }
+    })
+    .then((response) => {
+        if (response.ok) {
+            console.log(response.json());
+            return response.json();
+        }
+        console.log(response.statusText)
+        throw new Error(response.statusText);
+    })
+    .catch((error) => {
+        redirect(error);
+        console.log(error)
+    });
 }
 
 // Add a new service
@@ -80,7 +92,14 @@ async function removeService(serviceName) {
 // Fetch log files
 async function getLogFiles() {
     try {
-        const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
+        const response = await fetch(`${API_BASE_URL}/logs`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+            }
+        });
+        //const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
         return await response.json();
     } catch (error) {
         console.error('Error fetching log files:', error);
@@ -99,6 +118,7 @@ async function fetchLogContent(fileName) {
         return await response.json();
     } catch (error) {
         console.error('Error fetching log content:', error);
+        redirect();
         return { content: 'Error fetching log content.' };
     }
 }
