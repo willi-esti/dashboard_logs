@@ -9,6 +9,15 @@
 </head>
 <body class="container py-4">
     <h1 class="text-center mb-4">Server Dashboard</h1>
+    
+    <section class="dark-mode-toggle-container">
+        
+    <!-- Dark Mode Toggle -->
+        <div class="form-check form-switch text-end dark-mode-toggle">
+            <input class="form-check-input" type="checkbox" id="darkModeToggle" checked>
+            <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+        </div>
+    </section>
 
     <!-- Services Section -->
     <section>
@@ -43,6 +52,7 @@
         <div class="log-view">
             <ul id="logFileList" class="list-unstyled">
                 <!-- Log files will be populated here -->
+                <li class="log-file">errors.log</li>
             </ul>
         </div>
         <div id="logContent" class="log-content" hidden>
@@ -55,7 +65,12 @@
         <p>Last updated: <span id="lastUpdate">2024-12-20 12:00:00</span></p>
     </div>
 
-    <script src="js/web.js"></script>
     <script src="js/fetching.js"></script>
+    <script src="js/web.js"></script>
+    <script>
+        document.getElementById('darkModeToggle').addEventListener('change', function() {
+            document.body.classList.toggle('dark-mode', this.checked);
+        });
+    </script>
 </body>
 </html>
