@@ -24,7 +24,7 @@ CREATE TABLE api_logs (
 
 
 -- Insert admin user with SHA-256 hashed password
-INSERT INTO users (username, password) VALUES ('admin', '5e884898da28047151d0e56f8dc6292773603d0d6aabbddc8a3d6e5e9a7d5e5a');
+INSERT INTO users (username, password) VALUES ('admin', '$2y$10$W./gnGxnpZNsltNsMaIdvO0/mizcVx4lKBvKIymHduORSS8fmckaW');
 
 -- Insert services
 INSERT INTO services (name, description) VALUES ('httpd', 'HTTP Server');

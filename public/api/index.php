@@ -1,24 +1,34 @@
-
 <?php
 
 require_once 'utils.php';
-echo 'ok';
-authenticate();
+require_once 'middleware.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv->load();
+
+//$decoded = verifyToken();
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requestUri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
 try {
-    $user = getUsernameFromAuthHeader();
-    ob_start();
+    //$user = $decoded->sub;
 
+    ob_start();
+    
     switch (true) {
+        case preg_match('/^api\/authenticate$/', $requestUri):
+            require 'authenticate.php';
+            break;
         case preg_match('/^api\/services$/', $requestUri):
             require 'services.php';
             break;
         case preg_match('/^api\/logs$/', $requestUri):
             require 'logs.php';
             break;
+        /*case preg_match('/^api\/register$/', $requestUri):
+            require 'register.php';
+            break;*/
         default:
             jsonResponse(['error' => 'Endpoint not found'], 404);
     }
