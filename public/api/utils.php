@@ -1,7 +1,9 @@
-
 <?php
 
-$config = require __DIR__ . '/../config/config.php';
+require __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv->load();
 
 function authenticate()
 {
@@ -15,7 +17,7 @@ function authenticate()
     list($username, $password) = explode(':', base64_decode(substr($headers['Authorization'], 6)));
 
     try {
-        $db = new PDO('sqlite:../config/database.db');
+        $db = new PDO('sqlite:' . $_ENV['DB_PATH']);
         $stmt = $db->prepare('SELECT password FROM users WHERE username = ?');
         $stmt->execute([$username]);
         $hashedPassword = $stmt->fetchColumn();

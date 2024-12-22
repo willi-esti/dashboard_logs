@@ -2,6 +2,7 @@
 <?php
 
 require_once 'utils.php';
+echo 'ok';
 authenticate();
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
