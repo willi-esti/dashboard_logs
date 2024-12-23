@@ -113,12 +113,16 @@ async function fetchLogContent(fileName) {
     try {
         const response = await fetch(`${API_BASE_URL}/logs`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+            },
             body: JSON.stringify({ file: fileName })
         });
         return await response.json();
     } catch (error) {
-        console.error('Error fetching log content:', error);
+        //console.error('Error fetching log content:', error);
+        createAlert('Error fetching log content.', 'error');
         redirect();
         return { content: 'Error fetching log content.' };
     }

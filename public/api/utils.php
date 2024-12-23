@@ -18,12 +18,14 @@ function sanitize($data)
     return htmlspecialchars(strip_tags(trim($data)));
 }
 
-function jsonResponse($data, $status = 200)
+function jsonResponse($data, $status = 200, $log = true)
 {
     http_response_code($status);
     header('Content-Type: application/json');
-    logError(json_encode($data));
     echo json_encode($data);
+    if ($log) {
+        logError(json_encode($data));
+    }
     exit;
 }
 
