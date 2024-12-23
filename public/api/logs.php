@@ -4,7 +4,7 @@ $logDir = '/var/www/html/server-dashboard/logs';
 
 if ($requestMethod === 'GET') {
     $logFiles = array_filter(glob($logDir . "/*"), 'is_file');
-    jsonResponse(['files' => array_values($logFiles)]);
+    jsonResponse(array_values($logFiles));
 } elseif ($requestMethod === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $file = sanitize($data['file']);

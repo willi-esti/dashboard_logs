@@ -13,7 +13,7 @@ if ($requestMethod === 'GET') {
         $data[count($data) - 1]['status'] = $result;
     }
 
-    jsonResponse(['services' => $data]);
+    jsonResponse($data);
 } elseif ($requestMethod === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $action = sanitize($data['action']);

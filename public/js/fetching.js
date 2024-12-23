@@ -2,28 +2,29 @@
 // Fetching.js: Handles API requests
 
 const API_BASE_URL = '/api';
-
+let l = null;
 // Fetch services
 async function getServices() {
-    const response = await fetch(`${API_BASE_URL}/services`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+    try {
+        const response = await fetch(`${API_BASE_URL}/services`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            createAlert(data.message, 'error');
+            throw new Error(l.message);
         }
-    })
-    .then((response) => {
-        if (response.ok) {
-            console.log(response.json());
-            return response.json();
-        }
-        console.log(response.statusText)
-        throw new Error(response.statusText);
-    })
-    .catch((error) => {
-        redirect(error);
-        console.log(error)
-    });
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching services:', error.message);
+    }
 }
 
 // Add a new service

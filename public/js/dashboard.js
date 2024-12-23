@@ -3,14 +3,20 @@
 function populateServiceList(services) {
     const serviceList = document.getElementById('serviceList');
     serviceList.innerHTML = ''; // Clear existing services
+    console.log(services);
     
     services.forEach(service => {
         const serviceCard = document.createElement('div');
+        let active = false;
+        if (service.status == '1') {
+            active = true;
+        }
+        console.log(active);
         serviceCard.className = 'col-md-4';
         serviceCard.innerHTML = `
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <span class="status-indicator ${service.active ? 'status-active' : 'status-inactive'}"></span>
+                    <span class="status-indicator ${active ? 'status-active' : 'status-inactive'}"></span>
                     <strong>${service.name}</strong>
                     <div class="mt-2">
                         <button class="btn btn-sm btn-primary" onclick="restartService('${service.name}')">Restart</button>

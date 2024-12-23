@@ -7,7 +7,7 @@ function redirect(error) {
 
 function createAlert(message, type = 'success') {
     const alertDiv = document.createElement('div');
-    console.log("createAlert");
+    
     alertType = type;
     if (type === 'error') {
         alertName = 'Error';
