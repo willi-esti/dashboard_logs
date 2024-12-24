@@ -6,6 +6,7 @@
     <title>Server Dashboard</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/web.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body class="container py-4">
@@ -50,15 +51,13 @@
     <!-- Logs Section -->
     <section class="mt-4">
         <h2>Logs</h2>
-        <div class="log-view">
-            <ul id="logFileList" class="list-unstyled">
-                <!-- Log files will be populated here -->
-                <li class="log-file">errors.log</li>
-            </ul>
+        <div class="row" id="logFileList">
         </div>
-        <div id="logContent" class="log-content" hidden>
+        <button id="toggleScrollButton" class="btn btn-primary">Toggle Scroll</button>
+        <div id="logContent" class="log-content">
             <p>Select a log file to view its content.</p>
         </div>
+        
     </section>
 
     <!-- Footer -->
@@ -69,6 +68,7 @@
     <script src="js/web.js"></script>
     <script src="js/fetching.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Font Awesome -->
     <script>
         /*document.getElementById('darkModeToggle').addEventListener('change', function() {
             document.body.classList.toggle('dark-mode', this.checked);

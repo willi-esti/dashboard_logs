@@ -1,20 +1,23 @@
 <?php
+
 require __DIR__ . '/../../vendor/autoload.php';
-
-use Ratchet\Server\IoServer;
-use Ratchet\Http\HttpServer;
-use Ratchet\WebSocket\WsServer;
-
-use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
+use Ratchet\ConnectionInterface;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 // enable error reporting
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 //error_reporting(E_ALL);
 
-class Chat implements MessageComponentInterface
-{
+// load the env
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv->load();
+
+
+
+class LogServer implements MessageComponentInterface {
     protected $clients;
 
     public function __construct() {
@@ -22,40 +25,54 @@ class Chat implements MessageComponentInterface
     }
 
     public function onOpen(ConnectionInterface $conn) {
-        $this->clients->attach($conn);
+        $queryString = $conn->httpRequest->getUri()->getQuery();
+        parse_str($queryString, $queryParams);
 
-        echo "New connection! ({$conn->resourceId})\n";
+        if (!isset($queryParams['token'])) {
+            $conn->send(json_encode(['error' => 'Unauthorized']));
+            $conn->close();
+            return;
+        }
+
+        $token = $queryParams['token'];
+
+        try {
+            $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
+            $conn->user = $decoded->sub;
+            $this->clients->attach($conn);
+            echo "New connection! ({$conn->resourceId})\n";
+        } catch (Exception $e) {
+            $conn->send(json_encode(['error' => 'Unauthorized', 'message' => $e->getMessage()]));
+            $conn->close();
+        }
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-        $numRecv = count($this->clients) - 1;
-        echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n"
-            , $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
-
-        foreach ($this->clients as $client) {
-            if ($from !== $client) {
-                $client->send($msg);
-            }
-        }
+        echo "Message from {$from->resourceId}: $msg\n";
+        //print_r($this->clients);
+        // send a message to the client that sent the message
+        $from->send("You said: $msg");
     }
 
     public function onClose(ConnectionInterface $conn) {
         $this->clients->detach($conn);
-
         echo "Connection {$conn->resourceId} has disconnected\n";
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e) {
         echo "An error has occurred: {$e->getMessage()}\n";
-
         $conn->close();
     }
 }
 
+use Ratchet\Server\IoServer;
+use Ratchet\Http\HttpServer;
+use Ratchet\WebSocket\WsServer;
+
 $server = IoServer::factory(
     new HttpServer(
         new WsServer(
-            new Chat()
+            new LogServer()
         )
     ),
     8080
