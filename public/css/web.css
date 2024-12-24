@@ -72,12 +72,53 @@ body.dark-mode .footer {
 }
 
 .log-content {
-    white-space: pre-wrap;
+    /*white-space: pre-wrap;*/
     background-color: #f1f1f1;
-    padding: 10px;
+    /*padding: 10px;*/
     border: 1px solid #ccc;
     border-radius: 5px;
-    margin-top: 10px;
-    max-height: 200px;
-    overflow-y: auto;
+    margin: 10px 0px;
+    max-height: 600px;
+    overflow-y: unset;
+    /*resize: vertical;*/
+}
+
+.log-content pre {
+    resize: vertical;
+}
+
+
+/*pre {
+    overflow: unset;
+    white-space: pre-wrap;
+    counter-reset: line;
+}*/
+pre {
+    position: relative;
+    padding-left: 3.5em;
+    counter-reset: line;
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    border-radius: 5px;
+    padding: 10px;
+    overflow: auto;
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+pre code {
+    display: inline-block;
+}
+
+pre code:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: 2.5em;
+    margin-right: 1em;
+    text-align: right;
+    color: #888;
+    background-color: #2d2d2d;
+    padding-right: 0.5em;
+    border-right: 1px solid #555;
 }

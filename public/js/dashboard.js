@@ -72,10 +72,20 @@ function populateLogFiles(logFiles) {
     });
 }
 document.addEventListener('DOMContentLoaded', () => {
-    const logContent = document.getElementById('logContent');
-    const toggleScrollButton = document.getElementById('toggleScrollButton');
-
+    let toggleScrollButton = document.getElementById('toggleScrollButton');
+    // this tiggoel will disbale white-space: pre-wrap
     toggleScrollButton.addEventListener('click', () => {
+        //console.log(logContent.style.whiteSpace);
+        let logContent = document.getElementById('logContent').children[0];
+        if (logContent.style.whiteSpace === 'pre') {
+            logContent.style.whiteSpace = 'pre-wrap';
+            toggleScrollButton.textContent = 'Enable Scroll';
+        } else {
+            logContent.style.whiteSpace = 'pre';
+            toggleScrollButton.textContent = 'Disable Scroll';
+        }
+    });
+    /*toggleScrollButton.addEventListener('click', () => {
         if (logContent.style.overflowY === 'scroll') {
             logContent.style.overflowY = 'visible';
             logContent.style.height = 'auto';
@@ -85,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logContent.style.height = '400px'; // Set a fixed height for scrolling
             toggleScrollButton.textContent = 'Disable Scroll';
         }
-    });
+    });*/
 });
 
 async function downloadLogFile(fileName) {
@@ -106,7 +116,8 @@ async function viewLog(fileName) {
     const response = await fetchLogContent(fileName);
     const logContent = document.getElementById('logContent');
     logContent.hidden = false;
-    logContent.innerHTML = `<pre>${response.content || 'Error fetching log content.'}</pre>`;
+    // wrap each line of the content in a <code>
+    logContent.innerHTML = `<pre>${response.content.split('\n').map(line => `<code>${line}</code>`).join('\n') || 'Error fetching log content.'}</pre>`;
 }
 
 // Initial data fetch
