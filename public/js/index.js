@@ -50,7 +50,7 @@ document.getElementById('registrationForm').addEventListener('submit', async (ev
         }
         window.location.href = '/dashboard.html';
     } else {
-        createAlert(response.error, 'danger');
+        createAlert(response.error, 'danger', false);
         console.log(`Error: ${response.error}`);
     }
 });

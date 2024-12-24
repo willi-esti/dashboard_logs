@@ -16,7 +16,7 @@ async function getServices() {
 
         if (!response.ok) {
             const data = await response.json();
-            createAlert(data.message, 'error');
+            createAlert(data.message, 'error', false);
             throw new Error(data.message);
         }
         updateToken(response);
@@ -129,7 +129,7 @@ async function fetchLogContent(fileName) {
         return await response.json();
     } catch (error) {
         //console.error('Error fetching log content:', error);
-        createAlert('Error fetching log content.', 'error');
+        createAlert('Error fetching log content.', 'error', false);
         redirect();
         return { content: 'Error fetching log content.' };
     }

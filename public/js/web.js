@@ -11,21 +11,20 @@ function updateToken(response)
 
 function redirect(error) {
     console.log("redirect");
-    createAlert(error, 'error');
+    createAlert(error, 'error', false);
 }
 
-function createAlert(message, type = 'success') {
+function createAlert(message, type = 'success', timer = 5000) {
     const alertDiv = document.createElement('div');
     
-    alertType = type;
+    let alertType = type;
+    let alertName;
     if (type === 'error') {
         alertName = 'Error';
         alertType = 'danger';
-    }
-    else if (type === 'success') {
+    } else if (type === 'success') {
         alertName = 'Success';
-    }
-    else {
+    } else {
         alertName = 'Info';
     }
     alertDiv.className = `alert alert-${alertType} alert-dismissible fade show`;
@@ -39,6 +38,12 @@ function createAlert(message, type = 'success') {
         <button type="button" class="btn btn-primary btn-sm" onclick="window.location.href='/'">Go back to login</button>
     `;
     document.body.appendChild(alertDiv);
+
+    if (timer !== false) {
+        setTimeout(() => {
+            dismissAlert(alertDiv.querySelector('[data-dismiss="alert"]'));
+        }, timer);
+    }
 }
 //createAlert('Welcome to the dashboard!', 'error');
 
