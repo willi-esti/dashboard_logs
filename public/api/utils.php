@@ -2,9 +2,54 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
+
+function genToken($username)
+{
+    $payload = [
+        'iss' => $_ENV['JWT_ISSUER'],
+        'iat' => time(),
+        'exp' => time() + 3600, // Token expires in 1h
+        'sub' => $username
+    ];
+    return JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
+}
+
+function genNewToken($username)
+{
+    $token = genToken($username);
+    header('Authorization: Bearer ' . $token);
+}
+
+
+function verifyToken()
+{
+    $headers = getallheaders();
+    if (empty($headers['Authorization'])) {
+        jsonResponse(['error' => 'Unauthorized', 'message' => 'Authorization header is missing'], 401);
+    }
+
+    $authHeader = explode(' ', $headers['Authorization']);
+    $jwt = $authHeader[1];
+
+    try {
+        $decoded = JWT::decode($jwt, new Key($_ENV['JWT_SECRET'], 'HS256'));
+        $currentTime = time();
+        $remainingTime = $decoded->exp - $currentTime;
+
+        $newJwt = null;
+        // If the token is about to expire in less than 5 minutes, issue a new token
+        if ($remainingTime < 300) {
+            genNewToken($decoded->sub);
+            //header('Authorization: Bearer ' . $newJwt);
+        }
+    } catch (Exception $e) {
+        jsonResponse(['error' => 'Unauthorized', 'message' => $e->getMessage()], 401);
+    }
+}
 
 
 function getUsernameFromAuthHeader()

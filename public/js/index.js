@@ -1,6 +1,7 @@
 
 const API_BASE_URL = '/api';
 
+let l;
 // Fetch user
 async function authenticateUser(username, password) {
     try {
@@ -9,10 +10,9 @@ async function authenticateUser(username, password) {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic ' + btoa(username + ':' + password)
-            },
-            body: JSON.stringify({ username, password })
+            }
         });
-        return await response.json();
+        return await response;
     } catch (error) {
         console.error('Error registering user:', error);
         return { success: false, error: error.message };
@@ -34,17 +34,23 @@ document.getElementById('registrationForm').addEventListener('submit', async (ev
 
     // Send data to the server
     const response = await authenticateUser(username, password);
-    console.log("response", response.success);
-    if (response.success) {
+    console.log("response", response);
+    if (response.ok) {
         // rediect to dashboard.php
         console.log('Registration successful!');
         // set cookie token
         // like this localStorage.getItem('jwt'); 
-        localStorage.setItem('jwt', response.token);
-        //document.cookie = `token=${response.token}; path=/`;
-
+        if (response.headers.has('Authorization')) {
+            const newToken = response.headers.get('Authorization').split(' ')[1];
+            localStorage.setItem('jwt', newToken);
+        }
+        else
+        {
+            throw new Error('No token found in response!');
+        }
         window.location.href = '/dashboard.html';
     } else {
+        createAlert(response.error, 'danger');
         console.log(`Error: ${response.error}`);
     }
 });

@@ -1,5 +1,14 @@
 // Web.js: Handles DOM interactions and updates dynamically
 
+function updateToken(response)
+{
+    if (response.headers.has('Authorization')) {
+        const newToken = response.headers.get('Authorization').split(' ')[1];
+        console.log("newToken", newToken);
+        localStorage.setItem('jwt', newToken);
+    }
+}
+
 function redirect(error) {
     console.log("redirect");
     createAlert(error, 'error');

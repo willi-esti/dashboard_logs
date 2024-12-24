@@ -115,7 +115,7 @@ async function downloadLogFile(fileName) {
 async function viewLog(fileName) {
     const response = await fetchLogContent(fileName);
     const logContent = document.getElementById('logContent');
-    logContent.hidden = false;
+    
     // wrap each line of the content in a <code>
     logContent.innerHTML = `<pre>${response.content.split('\n').map(line => `<code>${line}</code>`).join('\n') || 'Error fetching log content.'}</pre>`;
 }

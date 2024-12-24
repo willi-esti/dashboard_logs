@@ -79,7 +79,7 @@ body.dark-mode .footer {
     border-radius: 5px;
     margin: 10px 0px;
     max-height: 600px;
-    overflow-y: unset;
+    overflow-y: auto;
     /*resize: vertical;*/
 }
 

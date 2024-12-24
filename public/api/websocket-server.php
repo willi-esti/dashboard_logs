@@ -51,7 +51,19 @@ class LogServer implements MessageComponentInterface {
         echo "Message from {$from->resourceId}: $msg\n";
         //print_r($this->clients);
         // send a message to the client that sent the message
-        $from->send("You said: $msg");
+        //$from->send("You said: $msg");
+        // the message will be a json containing the file name
+        $data = json_decode($msg);
+
+        // send the message to all the clients
+        foreach ($this->clients as $client) {
+            if ($from !== $client) {
+                $client->send(json_encode([
+                    'user' => $from->user,
+                    'message' => $data->message
+                ]));
+            }
+        }
     }
 
     public function onClose(ConnectionInterface $conn) {

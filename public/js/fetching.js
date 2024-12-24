@@ -17,8 +17,9 @@ async function getServices() {
         if (!response.ok) {
             const data = await response.json();
             createAlert(data.message, 'error');
-            throw new Error(l.message);
+            throw new Error(data.message);
         }
+        updateToken(response);
 
         const data = await response.json();
         return data;
@@ -35,6 +36,7 @@ async function addService(serviceName) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: serviceName })
         });
+        updateToken(response);
         return await response.json();
     } catch (error) {
         console.error('Error adding service:', error);
@@ -50,6 +52,7 @@ async function restartService(serviceName) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'restart', service: serviceName })
         });
+        updateToken(response);
         const result = await response.json();
         alert(result.status === 0 ? 'Service restarted successfully!' : 'Error restarting service.');
         fetchServices();
@@ -66,6 +69,7 @@ async function stopService(serviceName) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'stop', service: serviceName })
         });
+        updateToken(response);
         const result = await response.json();
         alert(result.status === 0 ? 'Service stopped successfully!' : 'Error stopping service.');
         fetchServices();
@@ -82,6 +86,7 @@ async function removeService(serviceName) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ service: serviceName })
         });
+        updateToken(response);
         const result = await response.json();
         alert(result.status === 0 ? 'Service removed successfully!' : 'Error removing service.');
         fetchServices();
@@ -100,6 +105,7 @@ async function getLogFiles() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt')
             }
         });
+        updateToken(response);
         //const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
         return await response.json();
     } catch (error) {
@@ -119,6 +125,7 @@ async function fetchLogContent(fileName) {
             },
             body: JSON.stringify({ file: fileName })
         });
+        updateToken(response);
         return await response.json();
     } catch (error) {
         //console.error('Error fetching log content:', error);

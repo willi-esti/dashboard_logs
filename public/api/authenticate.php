@@ -1,7 +1,9 @@
 <?php
 
 require __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/utils.php';
 use Firebase\JWT\JWT;
+
 
 function authenticate()
 {
@@ -31,14 +33,7 @@ function authenticate()
         if (!$hashedPassword || !password_verify($password, $hashedPassword)) {
             jsonResponse(['error' => 'Invalid credentials', 'message' => 'Username or password is incorrect'], 401);
         } else {
-            $payload = [
-                'iss' => $_ENV['JWT_ISSUER'],
-                'iat' => time(),
-                'exp' => time() + 3600, // Token expires in 1 hour
-                'sub' => $username
-            ];
-            $jwt = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
-            jsonResponse(['token' => $jwt, 'success' => 'Authentication successful']);
+            genNewToken($username);
         }
     } catch (PDOException $e) {
         jsonResponse(['error' => 'Authentication failed'], 500);
