@@ -43,7 +43,8 @@ function dismissAlert(button) {
 }
 
 function redirectIfUnauthorized() {
-    if (!document.cookie.includes('token')) {
+    // with localStorage.getItem('jwt')
+    if (!localStorage.getItem('jwt')) {
         redirect('No token found');
     }
 }

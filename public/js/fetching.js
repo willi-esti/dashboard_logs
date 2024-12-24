@@ -10,7 +10,7 @@ async function getServices() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
             }
         });
 
@@ -97,7 +97,7 @@ async function getLogFiles() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
             }
         });
         //const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
@@ -115,7 +115,7 @@ async function fetchLogContent(fileName) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + document.cookie.split('=')[1]
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
             },
             body: JSON.stringify({ file: fileName })
         });
