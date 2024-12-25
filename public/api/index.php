@@ -24,6 +24,10 @@ try {
             verifyToken();
             require 'logs.php';
             break;
+        case preg_match('/^api\/logs\/download/', $requestUri):
+            verifyToken();
+            require 'download.php';
+            break;
         /*case preg_match('/^api\/register$/', $requestUri):
             require 'register.php';
             break;*/

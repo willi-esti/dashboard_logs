@@ -60,19 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function downloadLogFile(fileName) {
-        const response = await fetch(`/server-dashboard/public/api/logs/download?file=${fileName}`);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-    }
-
     // Initial data fetch
     async function fetchServices() {
         const services = await getServices();
