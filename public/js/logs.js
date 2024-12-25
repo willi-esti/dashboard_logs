@@ -4,6 +4,12 @@ let socket;
 let reconnectInterval = 5000; // Time in milliseconds to wait before attempting to reconnect
 
 function connectWebSocket(logFile) {
+    try {
+        socket.close();
+    }
+    catch (error) {
+        console.log('No existing WebSocket connection to close.');
+    }
     socket = new WebSocket(`ws://ca.it-techs.fr:8080?token=${token}&logFile=${encodeURIComponent(logFile)}`);
 
     socket.onopen = function(event) {
@@ -58,9 +64,10 @@ function connectWebSocket(logFile) {
 
 function attemptReconnect() {
     console.log(`Attempting to reconnect in ${reconnectInterval / 1000} seconds...`);
+    createAlert('[WebSocket] Connection to the server was lost. Attempting to reconnect...', 'error', 5000);
     setTimeout(() => {
         console.log('Reconnecting...');
-        connectWebSocket();
+        connectWebSocket(logFile);
     }, reconnectInterval);
 }
 

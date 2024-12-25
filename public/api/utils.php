@@ -7,7 +7,7 @@ use Firebase\JWT\Key;
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
-$LOG_DIR = __DIR__ . '/../../logs';
+$LOG_DIR = __DIR__ . '/../' . $_ENV['LOG_DIR'];
 $DB_PATH = __DIR__ . '/../' . $_ENV['DB_PATH'];
 
 function genToken($username)
