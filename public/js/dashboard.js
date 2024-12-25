@@ -19,8 +19,8 @@ function populateServiceList(services) {
                     <strong>${service.name}</strong>
                     <div class="mt-2">
                         <button class="btn btn-sm btn-primary" onclick="restartService('${service.name}')">Restart</button>
-                        <button class="btn btn-sm btn-secondary" onclick="stopService('${service.name}')">Stop</button>
-                        <button class="btn btn-sm btn-danger" onclick="removeService('${service.name}')">Remove</button>
+                        <button class="btn btn-sm btn-secondary" onclick="statusService('${service.name}')">Status</button>
+                        <button class="btn btn-sm btn-danger" onclick="stopService('${service.name}')">Stop</button>
                     </div>
                 </div>
             </div>
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // this tiggoel will disbale white-space: pre-wrap
     toggleScrollButton.addEventListener('click', () => {
         //console.log(logContent.style.whiteSpace);
-        let logContent = document.getElementById('logContent').children[0];
+        let logContent = document.getElementById('logContentPre');
         if (logContent.style.whiteSpace === 'pre') {
             logContent.style.whiteSpace = 'pre-wrap';
             toggleScrollButton.textContent = 'Enable Scroll';

@@ -107,12 +107,13 @@ pre {
 }
 
 pre code {
-    display: inline-block;
+    display: block;
 }
 
 pre code:before {
     counter-increment: line;
-    content: counter(line);
+    content : attr(data-line-number);
+    /*content: counter(line);*/
     display: inline-block;
     width: 2.5em;
     margin-right: 1em;

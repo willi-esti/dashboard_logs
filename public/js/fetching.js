@@ -60,6 +60,22 @@ async function restartService(serviceName) {
     }
 }
 
+async function statusService(serviceName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/services`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'status', service: serviceName })
+        });
+        updateToken(response);
+        const result = await response.json();
+        alert(result.status === 0 ? 'Service is running!' : 'Service is not running.');
+        fetchServices();
+    } catch (error) {
+        console.error('Error checking service status:', error);
+    }
+}
+
 // Stop a service
 async function stopService(serviceName) {
     try {
@@ -74,23 +90,6 @@ async function stopService(serviceName) {
         fetchServices();
     } catch (error) {
         console.error('Error stopping service:', error);
-    }
-}
-
-// Remove a service
-async function removeService(serviceName) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/services`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ service: serviceName })
-        });
-        updateToken(response);
-        const result = await response.json();
-        alert(result.status === 0 ? 'Service removed successfully!' : 'Error removing service.');
-        fetchServices();
-    } catch (error) {
-        console.error('Error removing service:', error);
     }
 }
 

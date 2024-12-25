@@ -11,23 +11,25 @@ use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
 
-// enable error reporting
+// error
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 //error_reporting(E_ALL);
 
-// load the env
+// env
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
 class LogServer implements MessageComponentInterface {
     protected $clients;
     protected $logFiles;
+    protected $loop;
 
-    public function __construct() {
+    public function __construct($loop) {
         echo "LogServer started\n";
         $this->clients = new \SplObjectStorage;
         $this->logFiles = [];
+        $this->loop = $loop;
     }
 
     public function onOpen(ConnectionInterface $conn) {
@@ -41,7 +43,8 @@ class LogServer implements MessageComponentInterface {
         }
 
         $token = $queryParams['token'];
-        $logFile = $queryParams['logFile'];
+        $logFile = $_ENV['LOG_DIR'] . '/' . $queryParams['logFile'];
+        //$queryParams['logFile'];
 
         try {
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
@@ -59,7 +62,21 @@ class LogServer implements MessageComponentInterface {
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-        // No need to handle messages from clients in this example
+        $data = json_decode($msg, true);
+        if (isset($data['action'])) {
+            switch ($data['action']) {
+                case 'follow':
+                    $this->startMonitoringFile($from, $this->logFiles[$from->resourceId]['file'], $data['lastLines'] ?? null);
+                    break;
+                case 'getLogs':
+                    $this->displayLinesInRange($from, $this->logFiles[$from->resourceId]['file'], $data['startLine'] ?? null, $data['endLine'] ?? null, $data['lastLines'] ?? null);
+                    break;
+                default:
+                    $from->send(json_encode(['error' => 'Invalid action']));
+            }
+        } else {
+            $from->send(json_encode(['error' => 'Action not specified']));
+        }
     }
 
     public function onClose(ConnectionInterface $conn) {
@@ -73,53 +90,107 @@ class LogServer implements MessageComponentInterface {
         $conn->close();
     }
 
-    public function checkForNewLogLines() {
-        foreach ($this->clients as $client) {
-            $logFile = $this->logFiles[$client->resourceId]['file'];
-            $lastPos = $this->logFiles[$client->resourceId]['lastPos'];
-            $len = 0;
-            clearstatcache(true, $logFile);
-            $len = filesize($logFile);
-            echo "Logs : $logFile\n LastPos : $lastPos\n Len : $len\n size : ".filesize($logFile)."\n";
-            // only show the 20 last lines
-            if ($len < $lastPos) {
-                // File was truncated or reset
-                $this->logFiles[$client->resourceId]['lastPos'] = $len;
-            } elseif ($len > $lastPos) {
-                $f = fopen($logFile, "rb");
-                echo "Opening file\n";
-                if ($f === false) {
-                    continue;
+    protected function displayLinesInRange(ConnectionInterface $client, $filename, $startLine = null, $endLine = null, $lastLines = null) {
+        if (file_exists($filename)) {
+            $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $totalLines = count($lines);
+
+            if ($lastLines !== null) {
+                if ($lastLines < 1 || $lastLines > $totalLines) {
+                    $client->send(json_encode(['error' => 'Invalid number of last lines']));
+                    return;
                 }
-                fseek($f, $lastPos);
-                while (!feof($f)) {
-                    $buffer = fread($f, 4096);
-                    $client->send($buffer);
-                    echo "Sending buffer\n";
-                }
-                $this->logFiles[$client->resourceId]['lastPos'] = ftell($f);
-                echo "Closing file\n";
-                fclose($f);
+                $startLine = $totalLines - $lastLines + 1;
+                $endLine = $totalLines;
             }
+
+            if ($startLine < 1 || $endLine > $totalLines || $startLine > $endLine) {
+                $client->send(json_encode(['error' => 'Invalid range']));
+                return;
+            }
+
+            $output = [];
+            for ($i = $startLine - 1; $i < $endLine; $i++) {
+                $output[] = [
+                    'line' => ($i + 1),
+                    'content' => $lines[$i]
+                ];
+            }
+            $client->send(json_encode(['getLogs' => $output]));
+        } else {
+            $client->send(json_encode(['error' => 'File does not exist']));
         }
+    }
+
+    public function monitorFile($filename, $interval = 2, $lastLines = null) {
+        $lastLineCount = 0;
+
+        if ($lastLines !== null) {
+            $this->displayLinesInRange(null, $filename, null, null, $lastLines);
+            $lastLineCount = count(file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+        }
+
+        while (true) {
+            if (file_exists($filename)) {
+                $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                $currentLineCount = count($lines);
+
+                if ($currentLineCount > $lastLineCount) {
+                    for ($i = $lastLineCount; $i < $currentLineCount; $i++) {
+                        echo ($i + 1) . ": " . $lines[$i] . "\n";
+                    }
+                    $lastLineCount = $currentLineCount;
+                }
+            } else {
+                echo "Error: File does not exist.\n";
+            }
+
+            sleep($interval);
+        }
+    }
+
+    protected function startMonitoringFile(ConnectionInterface $client, $filename, $lastLines = null) {
+        echo "Starting monitoring file\n";
+        $lastLineCount = 0;
+
+        if ($lastLines !== null) {
+            $this->displayLinesInRange($client, $filename, null, null, $lastLines);
+            $lastLineCount = count(file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+        }
+
+        $this->loop->addPeriodicTimer(2, function() use ($client, $filename, &$lastLineCount) {
+            if (file_exists($filename)) {
+                $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                $currentLineCount = count($lines);
+
+                if ($currentLineCount > $lastLineCount) {
+                    $output = [];
+                    for ($i = $lastLineCount; $i < $currentLineCount; $i++) {
+                        $output[] = [
+                            'line' => ($i + 1),
+                            'content' => $lines[$i]
+                        ];
+                        //$output[] = ($i + 1) . ": " . $lines[$i];
+                    }
+                    $client->send(json_encode(['follow' => $output]));
+                    $lastLineCount = $currentLineCount;
+                }
+            } else {
+                $client->send(json_encode(['error' => 'File does not exist']));
+            }
+        });
     }
 }
 
 // Create the event loop
 $loop = Factory::create();
 
-// Set up a periodic timer to check for new log lines
-$logServer = new LogServer();
-$loop->addPeriodicTimer(1, function() use ($logServer) {
-    $logServer->checkForNewLogLines();
-});
 
-// Create the WebSocket server
 $webSock = new ReactServer('0.0.0.0:8080', $loop);
 $webServer = new IoServer(
     new HttpServer(
         new WsServer(
-            $logServer
+            new LogServer($loop)
         )
     ),
     $webSock,
