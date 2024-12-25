@@ -14,7 +14,25 @@ if ($requestMethod === 'GET') {
     }
 
     jsonResponse($data);
-} else {
-    jsonResponse(['error' => 'Method not allowed'], 405);
+} else if ($requestMethod === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $service = $data['service'];
+    $action = $data['action'];
+
+    if (!in_array($service, explode(',', $_ENV['SERVICES']))) {
+        jsonResponse(['error' => 'Service not found'], 404);
+    }
+
+    if ($action === 'restart') {
+        exec("sudo systemctl restart " . $service, $output, $status);
+    } else if ($action === 'stop') {
+        exec("sudo systemctl stop " . $service, $output, $status);
+    } else if ($action === 'status') {
+        exec("systemctl status " . $service, $output, $status);
+        jsonResponse(['content' => $output]);
+    } else {
+        jsonResponse(['error' => 'Invalid action'], 400);
+    }
+    //jsonResponse(['error' => 'Method not allowed'], 405);
 }
 ?>

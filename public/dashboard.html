@@ -69,10 +69,29 @@
         <p>Last updated: <span id="lastUpdate">2024-12-20 12:00:00</span></p>
     </div>
 
+    <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statusModalLabel">Service Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="statusModalBody" class="modal-body">
+                    <pre id="statusModalContent"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script src="js/web.js"></script>
     <script src="js/fetching.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/logs.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
     <script>
         /*document.getElementById('darkModeToggle').addEventListener('change', function() {
             document.body.classList.toggle('dark-mode', this.checked);

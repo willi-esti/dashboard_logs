@@ -61,7 +61,10 @@ function dismissAlert(button) {
 function redirectIfUnauthorized() {
     // with localStorage.getItem('jwt')
     if (!localStorage.getItem('jwt')) {
-        redirect('No token found');
+        if (window.location.pathname !== '/') {
+            //console.log(window.location.pathname);
+            redirect('No token found');
+        }
     }
 }
 redirectIfUnauthorized();

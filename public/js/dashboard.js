@@ -96,11 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     document.getElementById('logoutButton').addEventListener('click', async () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('jwt');
         window.location.href = '/';
     });
 
     // Run initial fetch
     fetchServices();
-    fetchLogs();    
+    fetchLogs();
+    setInterval(fetchServices, 5000); // Fetch services every 5 seconds
 });
