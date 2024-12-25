@@ -25,6 +25,7 @@ if ($requestMethod === 'GET') {
 
     if ($action === 'restart') {
         exec("sudo systemctl restart " . $service, $output, $status);
+        jsonResponse(['content' => $output, 'status' => $status]);
     } else if ($action === 'stop') {
         exec("sudo systemctl stop " . $service, $output, $status);
     } else if ($action === 'status') {

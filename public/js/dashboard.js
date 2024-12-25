@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (service.status == '1') {
                 active = true;
             }
-            console.log(active);
             serviceCard.className = 'col-md-4';
             serviceCard.innerHTML = `
                 <div class="card shadow-sm">

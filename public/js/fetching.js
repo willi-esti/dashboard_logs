@@ -28,15 +28,22 @@ async function restartService(serviceName) {
     try {
         const response = await fetch(`${API_BASE_URL}/services`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            },
             body: JSON.stringify({ action: 'restart', service: serviceName })
         });
         updateToken(response);
         const result = await response.json();
+        if (result.status === 0) {
+            createAlert('Service restarted successfully!', 'success', false);
+        }
+        else {
+            createAlert('Error restarting service.', 'error', false);
+        }
         console.log(result);
-
-        //alert(result.status === 0 ? 'Service restarted successfully!' : 'Error restarting service.');
-        fetchServices();
+        
     } catch (error) {
         console.error('Error restarting service:', error);
     }
@@ -59,6 +66,7 @@ async function statusService(serviceName) {
         // making a modal to show the status
         const modal = document.getElementById('statusModal');
         const modalBody = document.getElementById('statusModalContent');
+        modalBody.style.whiteSpace = 'pre';
         modalBody.innerHTML = '';
         result.content.forEach(element => {
             modalBody.innerHTML += `${element}<br>`;

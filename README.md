@@ -39,6 +39,7 @@ Server Dashboard is a web application that allows users to manage server service
 ```sh
 apt install php-sqlite3 sqlite3 composer
 ```
+
 ## Installation
 
 1. Clone the repository:
@@ -60,6 +61,35 @@ apt install php-sqlite3 sqlite3 composer
   sudo systemctl start websocket-server
   ```
 
+## Adding Sudo Rule
+
+To allow the `www-data` user to execute `systemctl restart` commands without a password, you can either add the rule manually or run the provided script.
+
+### Manually
+
+1. Open the sudoers file for editing:
+   ```sh
+   sudo visudo
+   ```
+
+2. Add the following line to the file:
+   ```
+   www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart *
+   ```
+
+3. Save and exit the editor.
+
+### Using the Script
+
+1. Make the script executable:
+   ```sh
+   chmod +x add_sudo_rule.sh
+   ```
+
+2. Run the script:
+   ```sh
+   sudo ./add_sudo_rule.sh
+   ```
 
 ## Usage
 
