@@ -1,6 +1,8 @@
 # Server Dashboard
 
-Server Dashboard is a web application that allows users to manage server services and view log files. It provides functionalities to add, remove, restart, and stop services, as well as view and download log files.
+Server Dashboard is a web application that allows users to manage server services and view log files. It provides functionalities to view status, restart and stop services, as well as view and download log files.
+
+![Server Dashboard](server-dashboard.jpeg)
 
 ## Features
 
@@ -14,19 +16,25 @@ Server Dashboard is a web application that allows users to manage server service
   - Download log files.
   - Stream log content in real-time.
 
-Service Management
+- **WebSocket Integration**:
+  - Real-time updates for service status and log streaming.
 
-GET /api/services: List all services and their statuses.
-POST /api/services: Add a new service to monitor.
-PUT /api/services/:name: Restart or stop a specific service.
-DELETE /api/services/:name: Remove a service.
-Log Management
+## API Endpoints
 
-GET /api/logs: List available log files.
-GET /api/logs/:name: Download a specific log file.
-GET /api/logs/:name/stream: Stream log content in real-time.
+### Service Management
 
-## Installation prerequired
+- `GET /api/services`: List all services and their statuses.
+- `POST /api/services`: Add a new service to monitor.
+- `PUT /api/services/:name`: Restart or stop a specific service.
+- `DELETE /api/services/:name`: Remove a service.
+
+### Log Management
+
+- `GET /api/logs`: List available log files.
+- `GET /api/logs/:name`: Download a specific log file.
+- `GET /api/logs/:name/stream`: Stream log content in real-time.
+
+## Installation Prerequisites
 
 ```sh
 apt install php-sqlite3 sqlite3 composer
@@ -55,7 +63,13 @@ apt install php-sqlite3 sqlite3 composer
     php -S 0.0.0.0:8000
     ```
 
-5. Open your browser and navigate to `http://localhost:8000`.
+5. Enable and start the WebSocket server daemon:
+    ```sh
+    sudo systemctl enable websocket-server
+    sudo systemctl start websocket-server
+    ```
+
+6. Open your browser and navigate to `http://localhost:8000`.
 
 ## Usage
 
