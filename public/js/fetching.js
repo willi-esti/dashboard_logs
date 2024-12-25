@@ -1,7 +1,3 @@
-
-// Fetching.js: Handles API requests
-
-let l = null;
 // Fetch services
 async function getServices() {
     try {
@@ -27,22 +23,6 @@ async function getServices() {
     }
 }
 
-// Add a new service
-async function addService(serviceName) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/services`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: serviceName })
-        });
-        updateToken(response);
-        return await response.json();
-    } catch (error) {
-        console.error('Error adding service:', error);
-        return { success: false, error: error.message };
-    }
-}
-
 // Restart a service
 async function restartService(serviceName) {
     try {
@@ -60,6 +40,7 @@ async function restartService(serviceName) {
     }
 }
 
+// Status of a service
 async function statusService(serviceName) {
     try {
         const response = await fetch(`${API_BASE_URL}/services`, {

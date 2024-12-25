@@ -39,12 +39,14 @@ function connectWebSocket(logFile) {
             logData.follow.forEach(element => {
                 logContent.innerHTML += `<code class="code-animation" data-line-number="${element.line}">${element.content}</code></>`;
             });
+            removingAnimation();
         }
         else if (logData.getLogs){
             const logContent = document.getElementById('logContentPre');
             logData.getLogs.forEach(element => {
                 logContent.innerHTML += `<code class="code-animation" data-line-number="${element.line}">${element.content}</code></>`;
             });
+            removingAnimation();
         }
         else if (logData.error) {
             createAlert(`[WebSocket] Error: ${logData.error}`, 'error', 5000);
@@ -86,6 +88,15 @@ function attemptReconnect() {
         console.log('Reconnecting...');
         connectWebSocket(logFile);
     }, reconnectInterval);
+}
+
+function removingAnimation() {
+    const codeElements = document.querySelectorAll('.code-animation');
+    codeElements.forEach((element) => {
+        setTimeout(() => {
+            element.classList.remove('code-animation');
+        }, 2000);
+    });
 }
 
 // Initial connection

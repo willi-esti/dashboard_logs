@@ -1,6 +1,3 @@
-
-
-let l;
 // Fetch user
 async function authenticateUser(username, password) {
     try {
