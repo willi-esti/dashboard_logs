@@ -39,37 +39,27 @@ Server Dashboard is a web application that allows users to manage server service
 ```sh
 apt install php-sqlite3 sqlite3 composer
 ```
-
 ## Installation
 
 1. Clone the repository:
-    ```sh
-    git clone https://github.com/willi-esti/server-dashboard.git
-    cd server-dashboard
-    ```
+  ```sh
+  git clone https://github.com/willi-esti/server-dashboard.git
+  cd server-dashboard
+  ```
 
-2. Set up the database:
-    ```sh
-    sqlite3 dashboard.db < schema.sql
-    ```
+2. Install the required PHP libraries using Composer:
+  ```sh
+  composer install
+  ```
 
 3. Configure the environment variables in a [.env](https://github.com/willi-esti/server-dashboard/blob/master/.env.example) file.
 
-4. Start the server:
-    ```sh
-    php -S localhost:8000
-    ```
-    ```sh
-    php -S 0.0.0.0:8000
-    ```
+4. Enable and start the WebSocket server daemon:
+  ```sh
+  sudo systemctl enable websocket-server
+  sudo systemctl start websocket-server
+  ```
 
-5. Enable and start the WebSocket server daemon:
-    ```sh
-    sudo systemctl enable websocket-server
-    sudo systemctl start websocket-server
-    ```
-
-6. Open your browser and navigate to `http://localhost:8000`.
 
 ## Usage
 
