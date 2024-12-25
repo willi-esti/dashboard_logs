@@ -9,38 +9,34 @@ function connectWebSocket(logFile) {
     socket.onopen = function(event) {
         console.log('WebSocket is connected.');
         // Send a message to trigger follow action
-        socket.send(JSON.stringify({ action: 'follow', lastLines: 10 }));
+        let lineCountInput = document.getElementById('lineCountInput');
+        socket.send(JSON.stringify({ action: 'follow', lastLines: lineCountInput.value }));
+        const logContent = document.getElementById('logContentPre');
+        logContent.innerHTML = '';
     };
 
     socket.onmessage = function(event) {
         logData = JSON.parse(event.data);
-        console.log(logData);
+        //console.log(logData);
+
         if (logData.follow) {
-            // Append new log lines to the log content
             const logContent = document.getElementById('logContentPre');
             logData.follow.forEach(element => {
-                //data-line-number="${element.line}"
                 logContent.innerHTML += `<code data-line-number="${element.line}">${element.content}</code></>`;
             });
         }
         else if (logData.getLogs){
             const logContent = document.getElementById('logContentPre');
             logData.getLogs.forEach(element => {
-                //data-line-number="${element.line}"
-                // adding the data above
-                //logContent.innerHTML += `<pre><code data-line-number="${element.line}">${element.content}</code></pre>`;
                 logContent.innerHTML += `<code data-line-number="${element.line}">${element.content}</code></>`;
             });
         }
-        /*async function viewLog(fileName) {
-            const response = await fetchLogContent(fileName);
-            const logContent = document.getElementById('logContent');
-            
-            // wrap each line of the content in a <code>
-            logContent.innerHTML = `<pre>${response.content.split('\n').map(line => `<code>${line}</code>`).join('\n') || 'Error fetching log content.'}</pre>`;
-        }*/
         
-                
+        let followToggle = document.getElementById('followToggle');
+        if (followToggle.checked) {
+            const logContent = document.getElementById('logContent');
+            logContent.scrollTop = logContent.scrollHeight;
+        }
         console.log('Received message:', event.data);
     };
 
