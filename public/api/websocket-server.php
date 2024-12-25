@@ -16,7 +16,10 @@ use Monolog\Handler\StreamHandler;
 // error
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
+//error_reporting(E_ALL); // Report all errors
+ini_set('log_errors', 1); // Enable error logging
+ini_set('error_log', __DIR__ . '/../../logs/php_errors.log'); // Set the error log file
+
 
 // env
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
@@ -159,7 +162,8 @@ class LogServer implements MessageComponentInterface {
                     fseek($f, $lastPos);
                     while (!feof($f)) {
                         $buffer = fread($f, 4096);
-                        $client->send($buffer);
+                        $client->send(json_encode(['follow' => $buffer]));
+                        //$client->send($buffer); 
                     }
                     $this->logFiles[$client->resourceId]['lastPos'] = ftell($f);
                     fclose($f);
@@ -212,9 +216,6 @@ $loop = Factory::create();
 
 // Create the WebSocket server
 $logServer = new LogServer($loop, $log);
-$loop->addPeriodicTimer(1, function() use ($logServer) {
-    $logServer->monitorFile();
-});
 
 $webSock = new ReactServer('0.0.0.0:8080', $loop);
 $webServer = new IoServer(

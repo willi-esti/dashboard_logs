@@ -8,7 +8,6 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
 $LOG_DIR = __DIR__ . '/../' . $_ENV['LOG_DIR'];
-$DB_PATH = __DIR__ . '/../' . $_ENV['DB_PATH'];
 
 function genToken($username)
 {
@@ -85,20 +84,6 @@ function logError($message)
         mkdir($logDir);
     }
     error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $logDir . '/errors.log');
-}
-
-function logApi($endpoint, $method, $user, $request, $response, $statusCode)
-{
-    try {
-        $db = new PDO('sqlite:' . $GLOBALS['DB_PATH']);
-        $stmt = $db->prepare('
-            INSERT INTO api_logs (endpoint, method, user, request, response, status_code)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ');
-        $stmt->execute([$endpoint, $method, $user, json_encode($request), json_encode($response), $statusCode]);
-    } catch (PDOException $e) {
-        logError('API logging failed: ' . $e->getMessage());
-    }
 }
 
 function isWhitelistedService($service)

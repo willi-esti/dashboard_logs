@@ -32,7 +32,6 @@ try {
     }
 
     $response = ob_get_clean();
-    //logApi($requestUri, $requestMethod, $user, $_REQUEST, $response, http_response_code());
     echo $response;
 } catch (Exception $e) {
     logError($e->getMessage());
