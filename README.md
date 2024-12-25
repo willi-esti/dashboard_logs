@@ -52,7 +52,7 @@ apt install php-sqlite3 sqlite3 composer
   composer install
   ```
 
-3. Configure the environment variables in a [.env](https://github.com/willi-esti/server-dashboard/blob/master/.env.example) file.
+3. Configure the environment variables in a [.env](.env.example) file.
 
 4. Enable and start the WebSocket server daemon:
   ```sh

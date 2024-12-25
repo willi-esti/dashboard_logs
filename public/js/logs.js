@@ -37,6 +37,15 @@ function connectWebSocket(logFile) {
                 logContent.innerHTML += `<code data-line-number="${element.line}">${element.content}</code></>`;
             });
         }
+        else if (logData.error) {
+            createAlert(`[WebSocket] Error: ${logData.error}`, 'error', 5000);
+            if (logData.error === 'Invalid token' || logData.error === 'Unauthorized') {
+                redirect();
+            }
+        }
+        else {
+            console.log('Unknown message:', logData);
+        }
         
         let followToggle = document.getElementById('followToggle');
         if (followToggle.checked) {
