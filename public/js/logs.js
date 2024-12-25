@@ -37,13 +37,13 @@ function connectWebSocket(logFile) {
         if (logData.follow) {
             const logContent = document.getElementById('logContentPre');
             logData.follow.forEach(element => {
-                logContent.innerHTML += `<code data-line-number="${element.line}">${element.content}</code></>`;
+                logContent.innerHTML += `<code class="code-animation" data-line-number="${element.line}">${element.content}</code></>`;
             });
         }
         else if (logData.getLogs){
             const logContent = document.getElementById('logContentPre');
             logData.getLogs.forEach(element => {
-                logContent.innerHTML += `<code data-line-number="${element.line}">${element.content}</code></>`;
+                logContent.innerHTML += `<code class="code-animation" data-line-number="${element.line}">${element.content}</code></>`;
             });
         }
         else if (logData.error) {

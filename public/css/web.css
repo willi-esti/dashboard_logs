@@ -124,7 +124,7 @@ pre code:before {
     border-right: 1px solid #555;
 }
 
-code {
+.code-animation {
     opacity: 1;
     animation-name: fadeInOpacity;
     animation-iteration-count: 1;

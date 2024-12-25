@@ -83,6 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleScrollButton.textContent = 'Disable Scroll';
         }
     });*/
+    const codeElements = document.querySelectorAll('.code-animation');
+
+    codeElements.forEach((element) => {
+        // Remove the animation class after the animation ends
+        element.addEventListener('animationend', () => {
+            console.log('Animation ended');
+            element.classList.remove('code-animation');
+        });
+    });
 });
 
 async function downloadLogFile(fileName) {
@@ -96,15 +105,6 @@ async function downloadLogFile(fileName) {
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
-}
-
-// View selected log content
-async function viewLog(fileName) {
-    const response = await fetchLogContent(fileName);
-    const logContent = document.getElementById('logContent');
-    
-    // wrap each line of the content in a <code>
-    logContent.innerHTML = `<pre>${response.content.split('\n').map(line => `<code>${line}</code>`).join('\n') || 'Error fetching log content.'}</pre>`;
 }
 
 // Initial data fetch

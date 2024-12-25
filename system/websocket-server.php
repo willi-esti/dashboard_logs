@@ -1,6 +1,17 @@
 <?php
 
-require __DIR__ . '/../../vendor/autoload.php';
+
+// env
+if ($argc < 2) {
+    die("Usage: php -f websocket-server.php /var/www/html/server-dashboard\n");
+}
+
+$envPath = $argv[1];
+if (!file_exists($envPath . '/.env')) {
+    die("The .env file does not exist in the specified directory: " . $envPath . "\n");
+}
+
+require $envPath . '/vendor/autoload.php';
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use Firebase\JWT\JWT;
@@ -13,21 +24,19 @@ use Ratchet\WebSocket\WsServer;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
+$dotenv = Dotenv\Dotenv::createImmutable($envPath);
+$dotenv->load();
+
 // error
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 //error_reporting(E_ALL); // Report all errors
 ini_set('log_errors', 1); // Enable error logging
-ini_set('error_log', __DIR__ . '/../../logs/php_errors.log'); // Set the error log file
-
-
-// env
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
-$dotenv->load();
+ini_set('error_log', $envPath . '/php_errors.log'); // Set the error log file
 
 // Create a log channel
 $log = new Logger('websocket_server');
-$log->pushHandler(new StreamHandler(__DIR__ . '/../../logs/server.log', Logger::DEBUG));
+$log->pushHandler(new StreamHandler( $envPath . '/logs/server.log', Logger::DEBUG));
 
 class LogServer implements MessageComponentInterface {
     protected $clients;
@@ -109,35 +118,39 @@ class LogServer implements MessageComponentInterface {
 
     protected function displayLinesInRange(ConnectionInterface $client, $filename, $startLine = null, $endLine = null, $lastLines = null) {
         try {
-            if (file_exists($filename)) {
-                $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                $totalLines = count($lines);
-
-                if ($lastLines !== null) {
-                    if ($lastLines < 1 || $lastLines > $totalLines) {
-                        $lastLines = $totalLines;
-                    }
-                    
-                    $startLine = $totalLines - $lastLines + 1;
-                    $endLine = $totalLines;
-                }
-
-                if ($startLine < 1 || $endLine > $totalLines || $startLine > $endLine) {
-                    $client->send(json_encode(['error' => 'Invalid range']));
-                    return;
-                }
-
-                $output = [];
-                for ($i = $startLine - 1; $i < $endLine; $i++) {
-                    $output[] = [
-                        'line' => ($i + 1),
-                        'content' => $lines[$i]
-                    ];
-                }
-                $client->send(json_encode(['getLogs' => $output]));
-            } else {
-                $client->send(json_encode(['error' => 'File does not exist']));
+            if (!file_exists($filename)) {
+                $this->logger->error("File does not exist", ['filename' => $filename]);
+                return;
             }
+            if (!is_file($filename)) {
+                $this->logger->error("Not a file", ['filename' => $filename]);
+                return;
+            }
+            $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $totalLines = count($lines);
+
+            if ($lastLines !== null) {
+                if ($lastLines < 1 || $lastLines > $totalLines) {
+                    $lastLines = $totalLines;
+                }
+                
+                $startLine = $totalLines - $lastLines + 1;
+                $endLine = $totalLines;
+            }
+
+            if ($startLine < 1 || $endLine > $totalLines || $startLine > $endLine) {
+                $client->send(json_encode(['error' => 'Invalid range']));
+                return;
+            }
+
+            $output = [];
+            for ($i = $startLine - 1; $i < $endLine; $i++) {
+                $output[] = [
+                    'line' => ($i + 1),
+                    'content' => $lines[$i]
+                ];
+            }
+            $client->send(json_encode(['getLogs' => $output]));
         } catch (Exception $e) {
             $this->logger->error("Error displaying lines in range", ['message' => $e->getMessage()]);
             $client->send(json_encode(['error' => 'Internal server error']));
@@ -180,6 +193,15 @@ class LogServer implements MessageComponentInterface {
 
         if ($lastLines !== null) {
             $this->displayLinesInRange($client, $filename, null, null, $lastLines);
+            if (!file_exists($filename)) {
+                $this->logger->error("File does not exist", ['filename' => $filename]);
+                return;
+            }
+            if (!is_file($filename)) {
+                $this->logger->error("Not a file", ['filename' => $filename]);
+                return;
+            }
+
             $lastLineCount = count(file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
         }
 
