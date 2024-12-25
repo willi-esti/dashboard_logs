@@ -23,14 +23,9 @@ function authenticate()
     
     
     try {
-        $db = new PDO('sqlite:' . __DIR__ . '/../' . $_ENV['DB_PATH']);
-        $stmt = $db->prepare('SELECT password FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        $hashedPassword = $stmt->fetchColumn(); 
-        
-        //echo password_hash($password, PASSWORD_DEFAULT);
-
-        if (!$hashedPassword || !password_verify($password, $hashedPassword)) {
+        $username = $_ENV['ADMIN_USERNAME'];
+        $hashed_password = $_ENV['ADMIN_PASSWORD'];
+        if ($username !== $username || !$hashed_password || !password_verify($password, $hashed_password)) {
             jsonResponse(['error' => 'Invalid credentials', 'message' => 'Username or password is incorrect'], 401);
         } else {
             genNewToken($username);

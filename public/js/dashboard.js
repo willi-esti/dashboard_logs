@@ -29,19 +29,6 @@ function populateServiceList(services) {
     });
 }
 
-// Add new service
-document.getElementById('addServiceForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const serviceName = document.getElementById('serviceName').value;
-    const response = await addService(serviceName);
-    if (response.success) {
-        alert('Service added successfully!');
-        fetchServices();
-    } else {
-        alert('Error adding service: ' + response.error);
-    }
-});
-
 // Fetch and display logs
 function populateLogFiles(logFiles) {
     const logFileList = document.getElementById('logFileList');

@@ -1,7 +1,6 @@
 
 // Fetching.js: Handles API requests
 
-const API_BASE_URL = '/api';
 let l = null;
 // Fetch services
 async function getServices() {

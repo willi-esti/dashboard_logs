@@ -1,5 +1,7 @@
 // Web.js: Handles DOM interactions and updates dynamically
 
+const API_BASE_URL = 'http://ca.it-techs.fr/api';
+
 function updateToken(response)
 {
     if (response.headers.has('Authorization')) {

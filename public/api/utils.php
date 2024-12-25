@@ -7,6 +7,9 @@ use Firebase\JWT\Key;
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
+$LOG_DIR = __DIR__ . '/../../logs';
+$DB_PATH = __DIR__ . '/../' . $_ENV['DB_PATH'];
+
 function genToken($username)
 {
     $payload = [
@@ -87,7 +90,7 @@ function logError($message)
 function logApi($endpoint, $method, $user, $request, $response, $statusCode)
 {
     try {
-        $db = new PDO('sqlite:../config/database.db');
+        $db = new PDO('sqlite:' . $GLOBALS['DB_PATH']);
         $stmt = $db->prepare('
             INSERT INTO api_logs (endpoint, method, user, request, response, status_code)
             VALUES (?, ?, ?, ?, ?, ?)

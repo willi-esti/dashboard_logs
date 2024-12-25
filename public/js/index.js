@@ -1,5 +1,4 @@
 
-const API_BASE_URL = '/api';
 
 let l;
 // Fetch user
@@ -50,7 +49,7 @@ document.getElementById('registrationForm').addEventListener('submit', async (ev
         }
         window.location.href = '/dashboard.html';
     } else {
-        createAlert(response.error, 'danger', false);
+        //createAlert(response.error, 'danger', false);
         console.log(`Error: ${response.error}`);
     }
 });
