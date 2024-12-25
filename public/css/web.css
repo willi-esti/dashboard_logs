@@ -26,6 +26,21 @@ body.dark-mode .footer {
     color: #999;
 }
 
+body.dark-mode .modal-header {
+    background: #2e2e2e;
+    border-bottom: 1px solid #444;
+}
+
+body.dark-mode .modal-body {
+    background: #1e1e1e;
+    color: #e0e0e0;
+}
+
+body.dark-mode .modal-footer {
+    background: #2e2e2e;
+    border-top: 1px solid #444;
+}
+
 .dark-mode-toggle-container {
     position: relative;
 }

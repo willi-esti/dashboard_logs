@@ -2,7 +2,7 @@
 
 Server Dashboard is a web application that allows users to manage server services and view log files. It provides functionalities to view status, restart and stop services, as well as view and download log files.
 
-![Server Dashboard](server-dashboard.jpeg)
+![Server Dashboard](server-dashboard-dark.jpeg)
 
 ## Features
 
