@@ -1,4 +1,4 @@
-let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
+//let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
 //let logFile = 'errors.log'; // Specify the log file to monitor
 let socket;
 let logFile = '';
@@ -12,6 +12,7 @@ function connectWebSocket(logFile) {
         console.log('No existing WebSocket connection to close.');
     }
     domain = window.location.hostname;
+    token = localStorage.getItem('jwt');
     socket = new WebSocket(`wss://${domain}/api/logs/stream?token=${token}&logFile=${encodeURIComponent(logFile)}`);
 
     socket.onopen = function(event) {
