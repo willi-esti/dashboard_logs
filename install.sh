@@ -141,13 +141,13 @@ if [ "$ENABLE_SSL" = true ]; then
     bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard-ssl.conf
 <VirtualHost *:443>
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/html/server-dashboard
+    DocumentRoot /var/www/html/server-dashboard/public
 
     SSLEngine on
     SSLCertificateFile /etc/apache2/ssl/apache.crt
     SSLCertificateKeyFile /etc/apache2/ssl/apache.key
 
-    <Directory /var/www/html/server-dashboard>
+    <Directory /var/www/html/server-dashboard/public>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
