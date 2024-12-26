@@ -108,9 +108,9 @@ if [ "$ENABLE_HTTP" = true ]; then
     bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard.conf
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/html/server-dashboard
+    DocumentRoot /var/www/html/server-dashboard/public
 
-    <Directory /var/www/html/server-dashboard>
+    <Directory /var/www/html/server-dashboard/public>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
