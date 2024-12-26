@@ -32,7 +32,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 //error_reporting(E_ALL); // Report all errors
 ini_set('log_errors', 1); // Enable error logging
-ini_set('error_log', $envPath . '/php_errors.log'); // Set the error log file
+ini_set('error_log', $envPath . '/logs/php_errors.log'); // Set the error log file
 
 // Create a log channel
 $log = new Logger('websocket_server');
@@ -239,7 +239,7 @@ $loop = Factory::create();
 // Create the WebSocket server
 $logServer = new LogServer($loop, $log);
 
-$webSock = new ReactServer('0.0.0.0:8080', $loop);
+$webSock = new ReactServer('127.0.0.1:8080', $loop);
 $webServer = new IoServer(
     new HttpServer(
         new WsServer(

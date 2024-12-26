@@ -11,7 +11,8 @@ function connectWebSocket(logFile) {
     catch (error) {
         console.log('No existing WebSocket connection to close.');
     }
-    socket = new WebSocket(`ws://ca.it-techs.fr:8080?token=${token}&logFile=${encodeURIComponent(logFile)}`);
+    domain = window.location.hostname;
+    socket = new WebSocket(`wss://${domain}/api/logs/stream/?token=${token}&logFile=${encodeURIComponent(logFile)}`);
 
     socket.onopen = function(event) {
         console.log('WebSocket is connected.');

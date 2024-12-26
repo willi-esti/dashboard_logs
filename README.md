@@ -24,15 +24,13 @@ Server Dashboard is a web application that allows users to manage server service
 ### Service Management
 
 - `GET /api/services`: List all services and their statuses.
-- `POST /api/services`: Add a new service to monitor.
-- `PUT /api/services/:name`: Restart or stop a specific service.
-- `DELETE /api/services/:name`: Remove a service.
+- `GET /api/services`: Restart or stop a specific service.
 
 ### Log Management
 
 - `GET /api/logs`: List available log files.
-- `GET /api/logs/:name`: Download a specific log file.
-- `GET /api/logs/:name/stream`: Stream log content in real-time.
+- `GET /api/logs/download?file=name`: Download a specific log file.
+- `GET /websocket?`: Stream log content in real-time.
 
 ## Installation Prerequisites
 
@@ -93,9 +91,9 @@ To allow the `www-data` user to execute `systemctl restart` commands without a p
 
 ## Usage
 
-- **Add a Service**: Use the form in the "Service Status" section to add a new service.
-- **Manage Services**: Use the buttons next to each service to restart, stop, or remove the service.
-- **View Logs**: Click on a log file name in the "Logs" section to view its content. Use the "Download" button to download the log file.
+- **Add a Service**: Use the .env to add a new service. (like in the .env.example)
+- **Manage Services**: Use the buttons next to each service to view the status, restart or stop the service.
+- **View Logs**: Click on view log in the "Logs" section to view its content. Use the "Download" button to download the log file.
 
 ## Contributing
 

@@ -1,1 +1,0 @@
-[25-Dec-2024 19:03:37 UTC] PHP Warning:  Uninitialized string offset 0 in /var/www/html/server-dashboard/vendor/ratchet/rfc6455/src/Handshake/RequestVerifier.php on line 56
