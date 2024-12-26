@@ -92,7 +92,7 @@ chmod -R 755 /var/www/html/server-dashboard
 echo "Restarting Apache to apply changes..."
 systemctl restart apache2
 echo "Copying websocket server service file to /etc/systemd/system..."
-cp /var/www/html/server-dashboard/websocket-server.service /etc/systemd/system/
+cp /var/www/html/server-dashboard/system/websocket-server.service /etc/systemd/system/
 
 echo "Enabling and starting websocket server..."
 systemctl enable websocket-server
