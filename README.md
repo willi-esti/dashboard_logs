@@ -8,13 +8,14 @@ Server Dashboard is a web application that allows users to manage server service
 
 - **Service Management**:
   - View the status of services (e.g., nginx, mysql, apache2).
-  - Add new services.
-  - Restart, stop, or remove services.
+  - Add new services. (Upcoming)
+  - Restart or stop services. (Upcoming)
 
 - **Log Viewing**:
   - View log files from the server.
   - Download log files.
   - Stream log content in real-time.
+  - Ability to add multiple log directories. (Upcoming)
 
 - **WebSocket Integration**:
   - Real-time updates for service status and log streaming.
@@ -24,19 +25,13 @@ Server Dashboard is a web application that allows users to manage server service
 ### Service Management
 
 - `GET /api/services`: List all services and their statuses.
-- `GET /api/services`: Restart or stop a specific service.
+- `GET /api/services`: Restart or stop a specific service. (Upcoming)
 
 ### Log Management
 
 - `GET /api/logs`: List available log files.
 - `GET /api/logs/download?file=name`: Download a specific log file.
-- `GET /websocket?`: Stream log content in real-time.
-
-## Installation Prerequisites
-
-```sh
-apt install php-sqlite3 sqlite3 composer
-```
+- `GET /api/logs/stream`: Stream log content in real-time.
 
 ## Installation
 
@@ -46,24 +41,41 @@ apt install php-sqlite3 sqlite3 composer
   cd server-dashboard
   ```
 
-2. Install the required PHP libraries using Composer:
-  ```sh
-  composer install
-  ```
-
 3. Configure the environment variables in a [.env](.env.example) file.
 
-4. Enable and start the WebSocket server daemon:
+4. Run the installation script with the desired options:
+  ```sh
+  sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall]
+  ```
+
+   - `--install`: Install the server dashboard.
+   - `--enable-ssl`: Enable SSL and generate self-signed certificates.
+   - `--enable-http`: Set up HTTP configuration.
+   - `--uninstall`: Uninstall the server dashboard.
+
+5. Enable and start the WebSocket server daemon:
   ```sh
   sudo systemctl enable websocket-server
   sudo systemctl start websocket-server
   ```
 
-## Adding Sudo Rule
+## Adding Sudo Rule (Upcoming)
 
 To allow the `www-data` user to execute `systemctl restart` commands without a password, you can either add the rule manually or run the provided script.
 
-### Manually
+### Using the Script (Upcoming)
+
+1. Make the script executable:
+   ```sh
+   chmod +x add_sudo_rule.sh
+   ```
+
+2. Run the script:
+   ```sh
+   sudo ./add_sudo_rule.sh
+   ```
+
+### Manually (Upcoming)
 
 1. Open the sudoers file for editing:
    ```sh
@@ -77,17 +89,6 @@ To allow the `www-data` user to execute `systemctl restart` commands without a p
 
 3. Save and exit the editor.
 
-### Using the Script
-
-1. Make the script executable:
-   ```sh
-   chmod +x add_sudo_rule.sh
-   ```
-
-2. Run the script:
-   ```sh
-   sudo ./add_sudo_rule.sh
-   ```
 
 ## Usage
 

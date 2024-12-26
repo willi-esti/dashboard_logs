@@ -16,7 +16,7 @@ function redirect(error) {
     createAlert(error, 'error', false);
 }
 
-function createAlert(message, type = 'success', timer = 5000) {
+function createAlert(message, type = 'success', timer = 5000, goback = true) {
     const alertDiv = document.createElement('div');
     
     let alertType = type;
@@ -37,8 +37,12 @@ function createAlert(message, type = 'success', timer = 5000) {
     alertDiv.innerHTML = `
         <strong>${alertName}:</strong> ${message}
         <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="window.location.href='/'">Go back to login</button>
     `;
+    if (goback === true) {
+        alertDiv.innerHTML += `
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
+        `;
+    }
     document.body.appendChild(alertDiv);
 
     if (timer !== false) {
