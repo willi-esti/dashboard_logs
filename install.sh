@@ -80,8 +80,10 @@ systemctl restart apache2
 echo "Creating directory for the server dashboard..."
 mkdir -p /var/www/html/server-dashboard
 
-echo "Copying files to the server dashboard directory..."
+echo "Copying files to the server dashboard directory, including hidden files..."
+shopt -s dotglob
 cp -r * /var/www/html/server-dashboard/
+shopt -u dotglob
 
 echo "Setting the correct permissions..."
 chown -R www-data:www-data /var/www/html/server-dashboard
