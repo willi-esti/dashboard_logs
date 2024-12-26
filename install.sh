@@ -4,7 +4,7 @@ set -e
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [--enable-ssl] [--enable-http] [--uninstall]"
+    echo "Usage: $0 [--install] [--enable-ssl] [--enable-http] [--uninstall]"
     exit 1
 }
 
@@ -18,8 +18,10 @@ fi
 ENABLE_SSL=false
 ENABLE_HTTP=false
 UNINSTALL=false
+INSTALL=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
+        --install) INSTALL=true ;;
         --enable-ssl) ENABLE_SSL=true ;;
         --enable-http) ENABLE_HTTP=true ;;
         --uninstall) UNINSTALL=true ;;
@@ -53,59 +55,60 @@ if [ "$UNINSTALL" = true ]; then
     exit 0
 fi
 
-# Check for .env file
-if [ ! -f .env ]; then
-    echo ".env file is missing."
-    echo "Please create it by copying the .env.example file:"
-    echo "cp .env.example .env"
-    exit 1
-fi
+if [ "$INSTALL" = true ]; then
+    # Check for .env file
+    if [ ! -f .env ]; then
+        echo ".env file is missing."
+        echo "Please create it by copying the .env.example file:"
+        echo "cp .env.example .env"
+        exit 1
+    fi
 
-if [ ! -d public ] || [ ! -f composer.json ]; then
-    echo "public folder or composer.json file is missing."
-    echo "Please make sure you are running the script in the correct directory."
-    exit 1
-fi
+    if [ ! -d public ] || [ ! -f composer.json ]; then
+        echo "public folder or composer.json file is missing."
+        echo "Please make sure you are running the script in the correct directory."
+        exit 1
+    fi
 
-echo "Updating package list..."
-apt-get update
+    echo "Updating package list..."
+    apt-get update
 
-echo "Installing necessary packages..."
-apt-get install -y apache2 php libapache2-mod-php
+    echo "Installing necessary packages..."
+    apt-get install -y apache2 php libapache2-mod-php
 
-echo "Enabling Apache mod_rewrite..."
-a2enmod rewrite
-systemctl restart apache2
+    echo "Enabling Apache mod_rewrite..."
+    a2enmod rewrite
+    systemctl restart apache2
 
-echo "Creating directory for the server dashboard..."
-mkdir -p /var/www/html/server-dashboard
+    echo "Creating directory for the server dashboard..."
+    mkdir -p /var/www/html/server-dashboard
 
-echo "Copying files to the server dashboard directory, including hidden files..."
-shopt -s dotglob
-cp -r * /var/www/html/server-dashboard/
-shopt -u dotglob
+    echo "Copying files to the server dashboard directory, including hidden files..."
+    shopt -s dotglob
+    cp -r * /var/www/html/server-dashboard/
+    shopt -u dotglob
 
-echo "Setting the correct permissions..."
-chown -R www-data:www-data /var/www/html/server-dashboard
-chmod -R 755 /var/www/html/server-dashboard
+    echo "Setting the correct permissions..."
+    chown -R www-data:www-data /var/www/html/server-dashboard
+    chmod -R 755 /var/www/html/server-dashboard
 
-echo "Restarting Apache to apply changes..."
-systemctl restart apache2
-echo "Copying websocket server service file to /etc/systemd/system..."
-cp /var/www/html/server-dashboard/system/websocket-server.service /etc/systemd/system/
+    echo "Restarting Apache to apply changes..."
+    systemctl restart apache2
+    echo "Copying websocket server service file to /etc/systemd/system..."
+    cp /var/www/html/server-dashboard/system/websocket-server.service /etc/systemd/system/
 
-echo "Enabling and starting websocket server..."
-systemctl enable websocket-server
-systemctl start websocket-server
+    echo "Enabling and starting websocket server..."
+    systemctl enable websocket-server
+    systemctl start websocket-server
 
-echo "Installing Composer dependencies..."
-cd /var/www/html/server-dashboard
-apt-get install -y composer
-composer install
+    echo "Installing Composer dependencies..."
+    cd /var/www/html/server-dashboard
+    apt-get install -y composer
+    composer install
 
-if [ "$ENABLE_HTTP" = true ]; then
-    echo "Setting up HTTP configuration..."
-    bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard.conf
+    if [ "$ENABLE_HTTP" = true ]; then
+        echo "Setting up HTTP configuration..."
+        bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard.conf
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html/server-dashboard/public
@@ -125,29 +128,29 @@ if [ "$ENABLE_HTTP" = true ]; then
 
     
 EOF'
-    if [ "$ENABLE_SSL" = true ]; then
-        bash -c 'cat <<EOF > /etc/apache2/sites-available/000-default.conf
+        if [ "$ENABLE_SSL" = true ]; then
+            bash -c 'cat <<EOF > /etc/apache2/sites-available/000-default.conf
     RewriteEngine On
     RewriteCond %{HTTPS} off
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 EOF'
-    fi
-    bash -c 'cat <<EOF >> /etc/apache2/sites-available/server-dashboard.conf
+        fi
+        bash -c 'cat <<EOF >> /etc/apache2/sites-available/server-dashboard.conf
 </VirtualHost>
 EOF'
 
 
-    a2ensite server-dashboard
-    systemctl reload apache2
-fi
+        a2ensite server-dashboard
+        systemctl reload apache2
+    fi
 
-if [ "$ENABLE_SSL" = true ]; then
-    echo "Enabling SSL and generating self-signed certificates..."
-    apt-get install -y openssl
-    a2enmod ssl
-    mkdir -p /etc/apache2/ssl
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/apache2/ssl/apache.key -out /etc/apache2/ssl/apache.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=your_domain.com"
-    bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard-ssl.conf
+    if [ "$ENABLE_SSL" = true ]; then
+        echo "Enabling SSL and generating self-signed certificates..."
+        apt-get install -y openssl
+        a2enmod ssl
+        mkdir -p /etc/apache2/ssl
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/apache2/ssl/apache.key -out /etc/apache2/ssl/apache.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=your_domain.com"
+        bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard-ssl.conf
 <VirtualHost *:443>
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html/server-dashboard/public
@@ -170,12 +173,13 @@ if [ "$ENABLE_SSL" = true ]; then
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF'
-    a2enmod ssl proxy proxy_wstunnel
-    a2ensite server-dashboard-ssl
-    systemctl reload apache2
-fi
+        a2enmod ssl proxy proxy_wstunnel
+        a2ensite server-dashboard-ssl
+        systemctl reload apache2
+    fi
 
-echo "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
-if [ "$ENABLE_SSL" = true ]; then
-    echo "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
+    echo "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
+    if [ "$ENABLE_SSL" = true ]; then
+        echo "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
+    fi
 fi
