@@ -14,12 +14,17 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Check if no arguments are provided
+if [ "$#" -eq 0 ]; then
+    usage
+fi
+
 # Parse arguments
 ENABLE_SSL=false
 ENABLE_HTTP=false
 UNINSTALL=false
 INSTALL=false
-while [[ "$#" -ge 0 ]]; do
+while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
         --enable-ssl) ENABLE_SSL=true ;;
