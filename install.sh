@@ -123,11 +123,20 @@ if [ "$ENABLE_HTTP" = true ]; then
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 
-    $([ "$ENABLE_SSL" = true ] && echo 'RewriteEngine On
+    
+EOF'
+    if [ "$ENABLE_SSL" = true ]; then
+        bash -c 'cat <<EOF > /etc/apache2/sites-available/000-default.conf
+    RewriteEngine On
     RewriteCond %{HTTPS} off
-    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]')
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+EOF'
+    fi
+    bash -c 'cat <<EOF >> /etc/apache2/sites-available/server-dashboard.conf
 </VirtualHost>
 EOF'
+
+
     a2ensite server-dashboard
     systemctl reload apache2
 fi
