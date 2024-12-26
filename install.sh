@@ -42,7 +42,7 @@ if [ "$UNINSTALL" = true ]; then
     rm -rf /var/www/html/server-dashboard
 
     echo "Removing Apache configuration for SSL if exists..."
-    a2dissite default-ssl.conf || true
+    a2dissite server-dashboard-ssl || true
     rm -f /etc/apache2/sites-available/default-ssl.conf
     rm -f /etc/apache2/ssl/apache.crt /etc/apache2/ssl/apache.key
 
