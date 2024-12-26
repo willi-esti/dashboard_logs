@@ -91,10 +91,10 @@ chmod -R 755 /var/www/html/server-dashboard
 
 echo "Restarting Apache to apply changes..."
 systemctl restart apache2
+echo "Copying websocket server service file to /etc/systemd/system..."
+cp /var/www/html/server-dashboard/websocket-server.service /etc/systemd/system/
 
-echo "Enabling system/websocket-server..."
-# Assuming you have a script or command to enable the websocket server
-# Replace the following line with the actual command to enable the websocket server
+echo "Enabling and starting websocket server..."
 systemctl enable websocket-server
 systemctl start websocket-server
 
