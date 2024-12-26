@@ -5,7 +5,6 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $dbPath = __DIR__ . '/../' . $_ENV['DB_PATH'];
     //print_r($_ENV);
     echo $dbPath;
 

@@ -1,45 +1,70 @@
-// Update the last updated timestamp
-document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
+// Web.js: Handles DOM interactions and updates dynamically
 
-// Add new service functionality
-const serviceList = document.getElementById('serviceList');
-const addServiceForm = document.getElementById('addServiceForm');
+const API_BASE_URL = '/api';
 
+function updateToken(response)
+{
+    if (response.headers.has('Authorization')) {
+        const newToken = response.headers.get('Authorization').split(' ')[1];
+        console.log("newToken", newToken);
+        localStorage.setItem('jwt', newToken);
+    }
+}
 
-// Populate log files dynamically (mockup example)
-const logFiles = ["server.log", "errors.log", "access.log"];
-const logFileList = document.getElementById('logFileList');
-const logContent = document.getElementById('logContent');
+function redirect(error) {
+    console.log("redirect");
+    createAlert(error, 'error', false);
+}
 
-logFiles.forEach(file => {
-    const listItem = document.createElement('li');
-    listItem.innerHTML = `
-        <button class="btn btn-link" onclick="showLogContent('${file}')">${file}</button>
-        <button class="btn btn-sm btn-secondary" onclick="downloadLog('${file}')">Download</button>
+function createAlert(message, type = 'success', timer = 5000) {
+    const alertDiv = document.createElement('div');
+    
+    let alertType = type;
+    let alertName;
+    if (type === 'error') {
+        alertName = 'Error';
+        alertType = 'danger';
+    } else if (type === 'success') {
+        alertName = 'Success';
+    } else {
+        alertName = 'Info';
+    }
+    alertDiv.className = `alert alert-${alertType} alert-dismissible fade show`;
+    alertDiv.style.position = 'fixed';
+    alertDiv.style.bottom = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        <strong>${alertName}:</strong> ${message}
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.location.href='/'">Go back to login</button>
     `;
-    logFileList.appendChild(listItem);
-});
+    document.body.appendChild(alertDiv);
 
-function showLogContent(file) {
-    // Mockup content (replace with actual fetch logic)
-    const mockContent = {
-        "server.log": "Server started at 12:00 PM\nListening on port 8080...",
-        "errors.log": "[Error] Failed to connect to database\n[Error] Unauthorized access attempt detected",
-        "access.log": "192.168.0.1 - - [20/Dec/2024:12:00:00 +0000] \"GET /index.html HTTP/1.1\" 200 1024"
-    };
+    if (timer !== false) {
+        setTimeout(() => {
+            dismissAlert(alertDiv.querySelector('[data-dismiss="alert"]'));
+        }, timer);
+    }
+}
+//createAlert('Welcome to the dashboard!', 'error');
 
-    logContent.hidden = false;
-    logContent.textContent = mockContent[file] || "Log content not found.";
+function dismissAlert(button) {
+    const alertDiv = button.parentElement;
+    alertDiv.classList.remove('show');
+    alertDiv.classList.add('hide');
+    setTimeout(() => {
+        document.body.removeChild(alertDiv);
+    }, 500); // Wait for the hide transition to complete
 }
 
-function downloadLog(file) {
-    // Replace with actual download logic
-    alert(`Downloading: ${file}`);
+function redirectIfUnauthorized() {
+    // with localStorage.getItem('jwt')
+    if (!localStorage.getItem('jwt')) {
+        if (window.location.pathname !== '/') {
+            //console.log(window.location.pathname);
+            redirect('No token found');
+        }
+    }
 }
-
-// Remove service functionality
-document.querySelectorAll('.remove-service').forEach(button => {
-    button.addEventListener('click', (e) => {
-        e.target.closest('.col-md-4').remove();
-    });
-});
+redirectIfUnauthorized();

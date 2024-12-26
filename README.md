@@ -1,6 +1,8 @@
 # Server Dashboard
 
-Server Dashboard is a web application that allows users to manage server services and view log files. It provides functionalities to add, remove, restart, and stop services, as well as view and download log files.
+Server Dashboard is a web application that allows users to manage server services and view log files. It provides functionalities to view status, restart and stop services, as well as view and download log files.
+
+![Server Dashboard](server-dashboard-dark.jpeg)
 
 ## Features
 
@@ -14,7 +16,23 @@ Server Dashboard is a web application that allows users to manage server service
   - Download log files.
   - Stream log content in real-time.
 
-## Installation prerequired
+- **WebSocket Integration**:
+  - Real-time updates for service status and log streaming.
+
+## API Endpoints
+
+### Service Management
+
+- `GET /api/services`: List all services and their statuses.
+- `GET /api/services`: Restart or stop a specific service.
+
+### Log Management
+
+- `GET /api/logs`: List available log files.
+- `GET /api/logs/download?file=name`: Download a specific log file.
+- `GET /websocket?`: Stream log content in real-time.
+
+## Installation Prerequisites
 
 ```sh
 apt install php-sqlite3 sqlite3 composer
@@ -23,33 +41,59 @@ apt install php-sqlite3 sqlite3 composer
 ## Installation
 
 1. Clone the repository:
-    ```sh
-    git clone https://github.com/willi-esti/server-dashboard.git
-    cd server-dashboard
-    ```
+  ```sh
+  git clone https://github.com/willi-esti/server-dashboard.git
+  cd server-dashboard
+  ```
 
-2. Set up the database:
-    ```sh
-    sqlite3 dashboard.db < schema.sql
-    ```
+2. Install the required PHP libraries using Composer:
+  ```sh
+  composer install
+  ```
 
-3. Configure the environment variables in a [.env](https://github.com/willi-esti/server-dashboard/blob/master/.env.example) file.
+3. Configure the environment variables in a [.env](.env.example) file.
 
-4. Start the server:
-    ```sh
-    php -S localhost:8000
-    ```
-    ```sh
-    php -S 0.0.0.0:8000
-    ```
+4. Enable and start the WebSocket server daemon:
+  ```sh
+  sudo systemctl enable websocket-server
+  sudo systemctl start websocket-server
+  ```
 
-5. Open your browser and navigate to `http://localhost:8000`.
+## Adding Sudo Rule
+
+To allow the `www-data` user to execute `systemctl restart` commands without a password, you can either add the rule manually or run the provided script.
+
+### Manually
+
+1. Open the sudoers file for editing:
+   ```sh
+   sudo visudo
+   ```
+
+2. Add the following line to the file:
+   ```
+   www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart *
+   ```
+
+3. Save and exit the editor.
+
+### Using the Script
+
+1. Make the script executable:
+   ```sh
+   chmod +x add_sudo_rule.sh
+   ```
+
+2. Run the script:
+   ```sh
+   sudo ./add_sudo_rule.sh
+   ```
 
 ## Usage
 
-- **Add a Service**: Use the form in the "Service Status" section to add a new service.
-- **Manage Services**: Use the buttons next to each service to restart, stop, or remove the service.
-- **View Logs**: Click on a log file name in the "Logs" section to view its content. Use the "Download" button to download the log file.
+- **Add a Service**: Use the .env to add a new service. (like in the .env.example)
+- **Manage Services**: Use the buttons next to each service to view the status, restart or stop the service.
+- **View Logs**: Click on view log in the "Logs" section to view its content. Use the "Download" button to download the log file.
 
 ## Contributing
 

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Dashboard</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/web.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body class="container py-4">
+    <!-- Header -->
+    <header class="d-flex justify-content-between align-items-center pb-3 mb-5">
+        <img src="assets/logo.png" alt="Logo" class="logo" width="50">
+        <h1>Server Dashboard</h1>
+        <button id="logoutButton" class="btn btn-primary btn-logout text-uppercase fw-bold">Logout</button>
+    </header>
+    
+    
+    <section class="dark-mode-toggle-container">
+        <div class="form-check form-switch text-end dark-mode-toggle">
+            <input class="form-check-input" type="checkbox" id="darkModeToggle">
+            <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section>
+        <h2>Service Status</h2>
+        <div class="row" id="serviceList">
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <span class="status-indicator status-active"></span>
+                        <strong>nginx</strong>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-primary">Restart</button>
+                            <button class="btn btn-sm btn-secondary">Stop</button>
+                            <button class="btn btn-sm btn-danger remove-service">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Logs Section -->
+    <section class="mt-4">
+        <h2>Logs</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <label for="lineCountInput" class="form-label">Lines:</label>
+                <input type="number" id="lineCountInput" class="form-control d-inline-block" style="width: 100px;" value="50">
+            </div>  
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="followToggle" checked>
+                <label class="form-check-label" for="followToggle">Follow</label>
+            </div>
+            <button id="toggleScrollButton" class="btn btn-primary">Toggle Scroll</button>
+        </div>
+        <div id="logContent" class="log-content">
+            <pre id="logContentPre"></pre>
+        </div>
+        <div class="row" id="logFileList"></div>
+    </section>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Last updated: <span id="lastUpdate">2024-12-20 12:00:00</span></p>
+    </div>
+
+    <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statusModalLabel">Service Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="statusModalBody" class="modal-body">
+                    <pre id="statusModalContent"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/web.js"></script>
+    <script src="js/fetching.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/logs.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        /*document.getElementById('darkModeToggle').addEventListener('change', function() {
+            document.body.classList.toggle('dark-mode', this.checked);
+        });*/
+    </script>
+</body>
+</html>

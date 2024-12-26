@@ -1,7 +1,7 @@
 <?php
 $logDir = '/var/log/apache2'; // Directory where log files are stored
 //$filename = basename($_GET['file']);
-$filename ='error.log';
+$filename ='access.log';
 $filePath = "$logDir/$filename";
 $file = $filePath;
 $lastpos = 0;

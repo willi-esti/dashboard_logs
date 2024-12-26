@@ -1,0 +1,14 @@
+[Unit]
+Description=WebSocket Server
+
+[Service]
+ExecStart=/usr/bin/php /var/www/html/server-dashboard/system/websocket-server.php /var/www/html/server-dashboard
+Restart=always
+User=www-data
+Group=www-data
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=PHP_HOME=/usr/local/bin/php
+WorkingDirectory=/var/www/html/server-dashboard/public/api
+
+[Install]
+WantedBy=multi-user.target
