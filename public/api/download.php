@@ -6,9 +6,12 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
+
+$LOG_DIR = __DIR__ . '/../../logs';
+
 if (isset($_GET['file'])) {
     $file = $_GET['file'];
-    $filePath = $_ENV['LOG_DIR'] . '/' . $file;
+    $filePath = $LOG_DIR . '/' . $file;
 
     if (file_exists($filePath)) {
         header('Content-Type: application/octet-stream');

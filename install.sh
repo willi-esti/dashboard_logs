@@ -4,7 +4,7 @@ set -e
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [--enable-ssl] [--uninstall]"
+    echo "Usage: $0 [--enable-ssl] [--enable-http] [--uninstall]"
     exit 1
 }
 
@@ -16,10 +16,12 @@ fi
 
 # Parse arguments
 ENABLE_SSL=false
+ENABLE_HTTP=false
 UNINSTALL=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --enable-ssl) ENABLE_SSL=true ;;
+        --enable-http) ENABLE_HTTP=true ;;
         --uninstall) UNINSTALL=true ;;
         *) usage ;;
     esac
@@ -99,13 +101,42 @@ cd /var/www/html/server-dashboard
 apt-get install -y composer
 composer install
 
+if [ "$ENABLE_HTTP" = true ]; then
+    echo "Setting up HTTP configuration..."
+    bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard.conf
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html/server-dashboard
+
+    <Directory /var/www/html/server-dashboard>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ProxyPreserveHost On
+    ProxyPass /api/logs/stream ws://localhost:8080/
+    ProxyPassReverse /api/logs/stream ws://localhost:8080/
+
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+
+    $([ "$ENABLE_SSL" = true ] && echo 'RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]')
+</VirtualHost>
+EOF'
+    a2ensite server-dashboard
+    systemctl reload apache2
+fi
+
 if [ "$ENABLE_SSL" = true ]; then
     echo "Enabling SSL and generating self-signed certificates..."
     apt-get install -y openssl
     a2enmod ssl
     mkdir -p /etc/apache2/ssl
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/apache2/ssl/apache.key -out /etc/apache2/ssl/apache.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=your_domain.com"
-    bash -c 'cat <<EOF > /etc/apache2/sites-available/default-ssl.conf
+    bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard-ssl.conf
 <VirtualHost *:443>
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html/server-dashboard
@@ -120,12 +151,16 @@ if [ "$ENABLE_SSL" = true ]; then
         Require all granted
     </Directory>
 
+    ProxyPreserveHost On
+    ProxyPass /api/logs/stream ws://localhost:8080/
+    ProxyPassReverse /api/logs/stream ws://localhost:8080/
+
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF'
-    a2enmod ssl
-    a2ensite default-ssl
+    a2enmod ssl proxy proxy_wstunnel
+    a2ensite server-dashboard-ssl
     systemctl reload apache2
 fi
 
