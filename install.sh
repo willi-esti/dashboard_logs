@@ -19,7 +19,7 @@ ENABLE_SSL=false
 ENABLE_HTTP=false
 UNINSTALL=false
 INSTALL=false
-while [[ "$#" -gt 0 ]]; do
+while [[ "$#" -ge 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
         --enable-ssl) ENABLE_SSL=true ;;
