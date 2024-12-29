@@ -41,8 +41,8 @@ Server Dashboard is a web application that allows users to manage server service
   cd server-dashboard
   ```
 
-3. Configure the environment variables in a [.env](.env.example) file.
-4. Run the installation script with the desired options:
+2. Configure the environment variables in a [.env](.env.example) file.
+3. Run the installation script with the desired options:
   Recommended for full functionalities:
   ```sh
   chmod u+x install.sh # Make the script executable 
@@ -54,18 +54,19 @@ Server Dashboard is a web application that allows users to manage server service
   sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]
   ```
 
-  - `--install`: Install the server dashboard. (The project will be in /var/www/html/server-dashboard)
+  - `--install`: Install the server dashboard and run the websocket-server service. (The project will be in /var/www/html/server-dashboard)
   - `--enable-ssl`: Enable SSL and generate self-signed certificates. (The file server-dashboard-ssl.conf will be added to sites-available in the apache conf)
   - `--enable-http`: Set up HTTP configuration. (The file server-dashboard.conf will be added to sites-available in the apache conf)
   - `--uninstall`: Uninstall the server dashboard.
   - `--add-sudo-rules`: Adds sudo rules for specified services in the variable SERVICE of your .env. (File with all the rules: /etc/sudoers.d/www-data-restart)
   - `--remove-sudo-rules`: Removes sudo rules for specified services.
 
-5. Enable and start the WebSocket server daemon:
+4. Make sure the WebSocket server daemon:
   ```sh
-  sudo systemctl enable websocket-server
-  sudo systemctl start websocket-server
+  sudo systemctl status websocket-server
   ```
+
+5. Access the dashboard from your browser (https://yourserver.ip/)
 
 ## Usage
 
