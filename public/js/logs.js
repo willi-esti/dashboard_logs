@@ -25,6 +25,7 @@ function connectWebSocket(logFile) {
     };
 
     socket.onmessage = function(event) {
+        loadingAnimationLog(false, logFile);
         //console.log('Received message:', event.data);
         console.log('Received message:');
         let logData;
@@ -68,6 +69,7 @@ function connectWebSocket(logFile) {
     };
 
     socket.onclose = function(event) {
+        loadingAnimationLog(false, logFile);
         console.log('WebSocket is closed.', event);
         if (event.wasClean) {
             console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
@@ -78,6 +80,7 @@ function connectWebSocket(logFile) {
     };
 
     socket.onerror = function(error) {
+        loadingAnimationLog(false, logFile);
         console.error('WebSocket error:', error);
         socket.close(); // Close the socket on error to trigger the onclose event
     };
@@ -101,11 +104,24 @@ function removingAnimation() {
     });
 }
 
-// Initial connection
-async function viewLog(logFile) {
-    connectWebSocket(logFile);
+function loadingAnimationLog(enable=true, logFile) {
+    const button = document.querySelector(`button[data-log="${logFile}"][data-action="view"]`);
+    if (enable) {
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-grow spinner-grow-sm" aria-hidden="true"></span> Loading...';
+    }
+    else {
+        button.disabled = false;
+        button.innerHTML = 'View';
+    }
 }
 
+
+// Initial connection
+async function viewLog(logFile) {
+    loadingAnimationLog(true, logFile);
+    connectWebSocket(logFile);
+}
 
 async function downloadLogFile(fileName) {
     const response = await fetch(`${API_BASE_URL}/logs/download?file=${fileName}`, {

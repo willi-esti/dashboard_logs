@@ -28,19 +28,23 @@
     <!-- Services Section -->
     <section>
         <h2>Service Status</h2>
+        <div class="form-check form-switch mt-4 mb-4">
+            <input class="form-check-input" type="checkbox" id="intervalSwitch" checked>
+            <label class="form-check-label" for="intervalSwitch">Enable Auto Refresh</label>
+        </div>
         <div class="row" id="serviceList">
             <div class="col-md-4">
-                <div class="card shadow-sm">
+                <!--<div class="card shadow-sm">
                     <div class="card-body">
                         <span class="status-indicator status-active"></span>
                         <strong>nginx</strong>
                         <div class="mt-2">
-                            <button class="btn btn-sm btn-primary">Restart</button>
-                            <button class="btn btn-sm btn-secondary">Stop</button>
+                            <button class="btn btn-sm btn-primary" data-service="nginx" data-action="restart">Restart</button>
+                            <button class="btn btn-sm btn-secondary" data-service="nginx" data-action="stop">Stop</button>
                             <button class="btn btn-sm btn-danger remove-service">Remove</button>
                         </div>
                     </div>
-                </div>
+                </div>-->
             </div>
         </div>
     </section>
@@ -94,7 +98,7 @@
     <script src="js/bootstrap.bundle.min.js"></script>
     <script>
         /*document.getElementById('darkModeToggle').addEventListener('change', function() {
-            document.body.classList.toggle('dark-mode', this.checked);
+            document.body.classList.toggle('dark-mode, this.checked);
         });*/
     </script>
 </body>

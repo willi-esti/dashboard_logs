@@ -25,6 +25,7 @@ async function getServices() {
 
 // Restart a service
 async function restartService(serviceName) {
+    loadingAnimation(true, 'service', serviceName, 'restart', 'Restart');
     try {
         const response = await fetch(`${API_BASE_URL}/services`, {
             method: 'POST',
@@ -37,20 +38,23 @@ async function restartService(serviceName) {
         updateToken(response);
         const result = await response.json();
         if (result.status === 0) {
-            createAlert('Service restarted successfully!', 'success', false);
+            createAlert('Service restarted successfully!', 'success', 5000, false);
         }
         else {
-            createAlert('Error restarting service.', 'error', false);
+            createAlert('Error restarting service.', 'error', 5000, false);
         }
         console.log(result);
         
     } catch (error) {
         console.error('Error restarting service:', error);
+    } finally {
+        loadingAnimation(false, 'service', serviceName, 'restart', 'Restart');
     }
 }
 
 // Status of a service
 async function statusService(serviceName) {
+    loadingAnimation(true, 'service', serviceName, 'status', 'Status');
     try {
         const response = await fetch(`${API_BASE_URL}/services`, {
             method: 'POST',
@@ -77,22 +81,36 @@ async function statusService(serviceName) {
     } catch (error) {
         console.error('Error checking service status:', error);
     }
+    finally {
+        loadingAnimation(false, 'service', serviceName, 'status', 'Status');
+    }
 }
 
 // Stop a service
 async function stopService(serviceName) {
+    loadingAnimation(true, 'service', serviceName, 'stop', 'Stop');
     try {
         const response = await fetch(`${API_BASE_URL}/services`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            },
             body: JSON.stringify({ action: 'stop', service: serviceName })
         });
         updateToken(response);
         const result = await response.json();
-        alert(result.status === 0 ? 'Service stopped successfully!' : 'Error stopping service.');
-        fetchServices();
+        if (result.status === 0) {
+            createAlert('Service stopped successfully!', 'success', 5000, false);
+        }
+        else {
+            createAlert('Error stopping service.', 'error', 5000, false);
+        }
+        console.log(result);
     } catch (error) {
         console.error('Error stopping service:', error);
+    } finally {
+        loadingAnimation(false, 'service', serviceName, 'stop', 'Stop');
     }
 }
 
