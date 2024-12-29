@@ -205,18 +205,33 @@ if [ "$ADD_SUDO_RULES" = true ]; then
     # Convert comma-separated strings to arrays
     IFS=',' read -r -a services <<< "$SERVICES"
 
-    # Add restart rule for each filtered service
+    # Add restart and stop rules for each filtered service
     for service in "${services[@]}"; do
-        RULE="www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart $service"
-        if sudo grep -Fxq "$RULE" /etc/sudoers; then
-            echo "Rule for $service already exists in sudoers file."
+        RESTART_RULE="www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart $service"
+        STOP_RULE="www-data ALL=(ALL) NOPASSWD: /bin/systemctl stop $service"
+        
+        if sudo grep -Fxq "$RESTART_RULE" /etc/sudoers.d/www-data-restart; then
+            echo "Restart rule for $service already exists in sudoers file."
         else
-            echo "$RULE" | sudo tee -a /etc/sudoers.d/www-data-restart
+            echo "$RESTART_RULE" | sudo tee -a /etc/sudoers.d/www-data-restart
             sudo visudo -cf /etc/sudoers.d/www-data-restart
             if [ $? -eq 0 ]; then
-                echo "Rule for $service added successfully."
+                echo "Restart rule for $service added successfully."
             else
-                echo "Failed to add rule for $service. Please check the sudoers file syntax."
+                echo "Failed to add restart rule for $service. Please check the sudoers file syntax."
+                sudo rm /etc/sudoers.d/www-data-restart
+            fi
+        fi
+
+        if sudo grep -Fxq "$STOP_RULE" /etc/sudoers.d/www-data-restart; then
+            echo "Stop rule for $service already exists in sudoers file."
+        else
+            echo "$STOP_RULE" | sudo tee -a /etc/sudoers.d/www-data-restart
+            sudo visudo -cf /etc/sudoers.d/www-data-restart
+            if [ $? -eq 0 ]; then
+                echo "Stop rule for $service added successfully."
+            else
+                echo "Failed to add stop rule for $service. Please check the sudoers file syntax."
                 sudo rm /etc/sudoers.d/www-data-restart
             fi
         fi
@@ -225,6 +240,7 @@ if [ "$ADD_SUDO_RULES" = true ]; then
     echo "Sudo rules added successfully."
     exit 0
 fi
+
 
 if [ "$REMOVE_SUDO_RULES" = true ]; then
     echo "Removing sudo rules for services..."
