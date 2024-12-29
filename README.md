@@ -15,7 +15,7 @@ Server Dashboard is a web application that allows users to manage server service
   - View log files from the server.
   - Download log files.
   - Stream log content in real-time.
-  - Ability to add multiple log directories. (Upcoming)
+  - Ability to add multiple log directories.
 
 - **WebSocket Integration**:
   - Real-time updates for service status and log streaming.

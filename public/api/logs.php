@@ -1,28 +1,42 @@
 <?php
 
-$logDir = '/var/www/html/server-dashboard/logs';
+// env
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv->load();
+
+$logDirs = explode(',', $_ENV['LOG_DIRS']);
 
 if ($requestMethod === 'GET') {
     $files = [];
-    if ($handle = opendir($logDir)) {
-        while (false !== ($file = readdir($handle))) {
-            if ($file === '.' || $file === '..') {
-                continue;
+    foreach ($logDirs as $logDir) {
+        $dirFiles = [];
+        if ($handle = opendir($logDir)) {
+            while (false !== ($file = readdir($handle))) {
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
+                // put in array
+                array_push($dirFiles, $file);
             }
-            // put in array
-            array_push($files, $file);
+            closedir($handle);
         }
-        closedir($handle);
+        $files[$logDir] = $dirFiles;
     }
-    //$logFiles = array_filter(glob($logDir . "/*"), 'is_file');
-    jsonResponse(array_values($files));
+    jsonResponse($files);
 } elseif ($requestMethod === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $file = sanitize($data['file']);
-    $filePath = "$logDir/$file";
+    $filePath = null;
 
-    if (!file_exists($filePath)) {
-        jsonResponse(['error' => 'Log file not found', 'file' => $filePath], 404);
+    foreach ($logDirs as $logDir) {
+        if (file_exists("$logDir/$file")) {
+            $filePath = "$logDir/$file";
+            break;
+        }
+    }
+
+    if ($filePath === null) {
+        jsonResponse(['error' => 'Log file not found', 'file' => $file], 404);
         exit;
     }
 

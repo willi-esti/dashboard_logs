@@ -65,7 +65,25 @@ class LogServer implements MessageComponentInterface {
             }
 
             $token = $queryParams['token'];
-            $logFile = $_ENV['LOG_DIR'] . '/' . $queryParams['logFile'];
+            $logFile = $queryParams['logFile'];
+            // Check if the path in the logFile is among the allowed log directories in $_ENV['LOG_DIRS']
+            $logDirs = explode(',', $_ENV['LOG_DIRS']);
+            $logFileFound = false;
+            foreach ($logDirs as $logDir) {
+                $logDir = rtrim($logDir, '/') . '/';
+                if (strpos($logFile, $logDir) === 0 && preg_match('/^' . preg_quote($logDir, '/') . '[^\/]+\.log$/', $logFile)) {
+                    $logFileFound = true;
+                    break;
+                }
+            }
+
+            if (!$logFileFound) {
+                $this->logger->warning("Unauthorized logFile access attempt", ['resourceId' => $conn->resourceId, 'logFile' => $logFile]);
+                $conn->send(json_encode(['error' => 'Unauthorized logFile access']));
+                $conn->close();
+                return;
+            }
+
 
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
             $conn->user = $decoded->sub;
@@ -113,6 +131,7 @@ class LogServer implements MessageComponentInterface {
 
     public function onError(ConnectionInterface $conn, \Exception $e) {
         $this->logger->error("An error has occurred", ['resourceId' => $conn->resourceId, 'message' => $e->getMessage()]);
+        $client->send(json_encode(['error' => 'Internal server error']));
         $conn->close();
     }
 
@@ -120,10 +139,12 @@ class LogServer implements MessageComponentInterface {
         try {
             if (!file_exists($filename)) {
                 $this->logger->error("File does not exist", ['filename' => $filename]);
+                $client->send(json_encode(['error' => 'File does not exist']));
                 return;
             }
             if (!is_file($filename)) {
                 $this->logger->error("Not a file", ['filename' => $filename]);
+                $client->send(json_encode(['error' => 'Not a file']));
                 return;
             }
             $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -195,10 +216,12 @@ class LogServer implements MessageComponentInterface {
             $this->displayLinesInRange($client, $filename, null, null, $lastLines);
             if (!file_exists($filename)) {
                 $this->logger->error("File does not exist", ['filename' => $filename]);
+                $client->send(json_encode(['error' => 'File does not exist']));
                 return;
             }
             if (!is_file($filename)) {
                 $this->logger->error("Not a file", ['filename' => $filename]);
+                $client->send(json_encode(['error' => 'Not a file']));
                 return;
             }
 
