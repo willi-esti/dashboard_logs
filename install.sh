@@ -109,10 +109,6 @@ if [ "$INSTALL" = true ]; then
     echo "Copying websocket server service file to /etc/systemd/system..."
     cp /var/www/html/server-dashboard/system/websocket-server.service /etc/systemd/system/
 
-    echo "Enabling and starting websocket server..."
-    systemctl enable websocket-server
-    systemctl start websocket-server
-
     echo "Installing Composer dependencies..."
     cd /var/www/html/server-dashboard
     apt-get install -y composer
@@ -189,6 +185,10 @@ EOF'
         a2ensite server-dashboard-ssl
         systemctl reload apache2
     fi
+    
+    echo "Enabling and starting websocket server..."
+    systemctl enable websocket-server
+    systemctl start websocket-server
 
     echo "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
