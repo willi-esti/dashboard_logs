@@ -131,7 +131,6 @@ async function fetchLogContent(fileName) {
     } catch (error) {
         //console.error('Error fetching log content:', error);
         createAlert('Error fetching log content.', 'error', false);
-        redirect();
         return { content: 'Error fetching log content.' };
     }
 }
