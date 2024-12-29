@@ -9,7 +9,7 @@ Server Dashboard is a web application that allows users to manage server service
 - **Service Management**:
   - View the status of services (e.g., nginx, mysql, apache2).
   - Add new services. (Upcoming)
-  - Restart or stop services. (Upcoming)
+  - Restart or stop services.
 
 - **Log Viewing**:
   - View log files from the server.
@@ -25,13 +25,13 @@ Server Dashboard is a web application that allows users to manage server service
 ### Service Management
 
 - `GET /api/services`: List all services and their statuses.
-- `GET /api/services`: Restart or stop a specific service. (Upcoming)
+- `POST /api/services`: Restart or stop a specific service.
 
 ### Log Management
 
 - `GET /api/logs`: List available log files.
 - `GET /api/logs/download?file=name`: Download a specific log file.
-- `GET /api/logs/stream`: Stream log content in real-time.
+- `GET /api/logs/stream?token={token}&logFile={filename}`: Stream log content in real-time.
 
 ## Installation
 
@@ -42,55 +42,30 @@ Server Dashboard is a web application that allows users to manage server service
   ```
 
 3. Configure the environment variables in a [.env](.env.example) file.
-
 4. Run the installation script with the desired options:
+  Recommended for full functionalities:
+  ```sh
+  chmod u+x install.sh # Make the script executable 
+  sudo ./install.sh --install --enable-http --enable-ssl --add-sudo-rules # you should disable 000-default after the installation (a2dissite 000-default)
+  ```
+
+  Alternatively, you can use the following options:
   ```sh
   sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]
   ```
 
-   - `--install`: Install the server dashboard.
-   - `--enable-ssl`: Enable SSL and generate self-signed certificates.
-   - `--enable-http`: Set up HTTP configuration.
-   - `--uninstall`: Uninstall the server dashboard.
-   - `--add-sudo-rules`: Adds sudo rules for specified services in the variable SERVICE of your .env.
-   - `--remove-sudo-rules`: Removes sudo rules for specified services.
+  - `--install`: Install the server dashboard. (The project will be in /var/www/html/server-dashboard)
+  - `--enable-ssl`: Enable SSL and generate self-signed certificates. (The file server-dashboard-ssl.conf will be added to sites-available in the apache conf)
+  - `--enable-http`: Set up HTTP configuration. (The file server-dashboard.conf will be added to sites-available in the apache conf)
+  - `--uninstall`: Uninstall the server dashboard.
+  - `--add-sudo-rules`: Adds sudo rules for specified services in the variable SERVICE of your .env. (File with all the rules: /etc/sudoers.d/www-data-restart)
+  - `--remove-sudo-rules`: Removes sudo rules for specified services.
 
 5. Enable and start the WebSocket server daemon:
   ```sh
   sudo systemctl enable websocket-server
   sudo systemctl start websocket-server
   ```
-
-## Adding Sudo Rule (Upcoming)
-
-To allow the `www-data` user to execute `systemctl restart` commands without a password, you can either add the rule manually or run the provided script.
-
-### Using the Script (Upcoming)
-
-1. Make the script executable:
-   ```sh
-   chmod +x add_sudo_rule.sh
-   ```
-
-2. Run the script:
-   ```sh
-   sudo ./add_sudo_rule.sh
-   ```
-
-### Manually (Upcoming)
-
-1. Open the sudoers file for editing:
-   ```sh
-   sudo visudo
-   ```
-
-2. Add the following line to the file:
-   ```
-   www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart *
-   ```
-
-3. Save and exit the editor.
-
 
 ## Usage
 
