@@ -45,13 +45,15 @@ Server Dashboard is a web application that allows users to manage server service
 
 4. Run the installation script with the desired options:
   ```sh
-  sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall]
+  sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]
   ```
 
    - `--install`: Install the server dashboard.
    - `--enable-ssl`: Enable SSL and generate self-signed certificates.
    - `--enable-http`: Set up HTTP configuration.
    - `--uninstall`: Uninstall the server dashboard.
+   - `--add-sudo-rules`: Adds sudo rules for specified services in the variable SERVICE of your .env.
+   - `--remove-sudo-rules`: Removes sudo rules for specified services.
 
 5. Enable and start the WebSocket server daemon:
   ```sh

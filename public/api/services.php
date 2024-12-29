@@ -6,7 +6,10 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
 if ($requestMethod === 'GET') {
-    $services = explode(',', $_ENV['SERVICES']);
+    $services = array_merge(
+        explode(',', $_ENV['SERVICES']),
+        explode(',', $_ENV['PROTECTED_SERVICES'])
+    );
     foreach ($services as $service) {
         $data[] = ['name' => $service];
         $result = exec("systemctl is-active --quiet " . $service . " && echo 1 || echo 0", $output, $status);
