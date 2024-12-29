@@ -30,6 +30,7 @@ function loadingAnimation(enable=true, dataType, data, action, text) {
 }
 
 function createAlert(message, type = 'success', timer = 5000, goback = true) {
+    const alertContainer = document.getElementById('alert-container');
     const alertDiv = document.createElement('div');
     
     let alertType = type;
@@ -43,10 +44,10 @@ function createAlert(message, type = 'success', timer = 5000, goback = true) {
         alertName = 'Info';
     }
     alertDiv.className = `alert alert-${alertType} alert-dismissible fade show`;
-    alertDiv.style.position = 'fixed';
+    /*alertDiv.style.position = 'fixed';
     alertDiv.style.bottom = '20px';
     alertDiv.style.right = '20px';
-    alertDiv.style.zIndex = '9999';
+    alertDiv.style.zIndex = '9999';*/
     alertDiv.innerHTML = `
         <strong>${alertName}:</strong> ${message}
         <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
@@ -56,11 +57,13 @@ function createAlert(message, type = 'success', timer = 5000, goback = true) {
         <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
         `;
     }
-    document.body.appendChild(alertDiv);
+    alertContainer.appendChild(alertDiv);
+    //document.body.appendChild(alertDiv);
 
     if (timer !== false) {
         setTimeout(() => {
             dismissAlert(alertDiv.querySelector('[data-dismiss="alert"]'));
+            alertContainer.removeChild(alertDiv);
         }, timer);
     }
 }
