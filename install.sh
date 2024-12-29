@@ -141,7 +141,7 @@ if [ "$INSTALL" = true ]; then
     
 EOF'
         if [ "$ENABLE_SSL" = true ]; then
-            bash -c 'cat <<EOF > /etc/apache2/sites-available/server-dashboard.conf
+            bash -c 'cat <<EOF >> /etc/apache2/sites-available/server-dashboard.conf
     RewriteEngine On
     RewriteCond %{HTTPS} off
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
