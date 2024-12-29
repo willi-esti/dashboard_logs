@@ -38,6 +38,7 @@ async function restartService(serviceName) {
         updateToken(response);
         const result = await response.json();
         if (result.status === 0) {
+            fetchServices();
             createAlert('Service restarted successfully!', 'success', 5000, false);
         }
         else {
@@ -101,6 +102,7 @@ async function stopService(serviceName) {
         updateToken(response);
         const result = await response.json();
         if (result.status === 0) {
+            fetchServices();
             createAlert('Service stopped successfully!', 'success', 5000, false);
         }
         else {
