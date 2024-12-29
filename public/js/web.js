@@ -17,6 +17,18 @@ function redirect(error) {
     createAlert(error, 'error', false);
 }
 
+function loadingAnimation(enable=true, dataType, data, action, text) {
+    const button = document.querySelector(`button[data-${dataType}="${data}"][data-action="${action}"]`);
+    if (enable) {
+        button.disabled = true;
+        button.innerHTML = `<span class="spinner-grow spinner-grow-sm" aria-hidden="true"></span> ${text}`;
+    }
+    else {
+        button.disabled = false;
+        button.innerHTML = text;
+    }
+}
+
 function createAlert(message, type = 'success', timer = 5000, goback = true) {
     const alertDiv = document.createElement('div');
     

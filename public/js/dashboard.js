@@ -15,12 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
             serviceCard.innerHTML = `
                 <div class="card shadow-sm">
                     <div class="card-body">
+                    ${service.protected ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lock-fill lock-icon" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2"/></svg>' : ''}
                         <span class="status-indicator ${active ? 'status-active' : 'status-inactive'}"></span>
                         <strong>${service.name}</strong>
                         <div class="mt-2">
-                            <button class="btn btn-sm btn-primary" onclick="restartService('${service.name}')">Restart</button>
-                            <button class="btn btn-sm btn-secondary" onclick="statusService('${service.name}')">Status</button>
-                            <button class="btn btn-sm btn-danger" onclick="stopService('${service.name}')">Stop</button>
+                            <button class="btn btn-sm btn-primary" data-service="${service.name}" data-action="restart" onclick="restartService('${service.name}')" ${service.protected ? 'disabled title="Service is protected"' : ''}>Restart</button>
+                            <button class="btn btn-sm btn-secondary" data-service="${service.name}" data-action="status" onclick="statusService('${service.name}')">Status</button>
+                            <button class="btn btn-sm btn-danger" data-service="${service.name}" data-action="stop" onclick="stopService('${service.name}')" ${service.protected ? 'disabled title="Service is protected"' : ''}>Stop</button>
                         </div>
                     </div>
                 </div>
@@ -48,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <strong>${file}</strong>
                             <div class="mt-2">
                                 <button class="btn btn-primary btn-sm" onclick="downloadLogFile('${file}')">Download</button>
-                                <button class="btn btn-success btn-sm" onclick="viewLog('${file}')">View</button>
+                                <button class="btn btn-success btn-sm" data-log="${file}" data-action="view" onclick="viewLog('${file}')">View</button>
                             </div>
                         </div>
                     </div>
@@ -117,8 +118,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Add interval switch
+    const intervalSwitch = document.getElementById('intervalSwitch');
+    let intervalId;
+
+    function startInterval() {
+        intervalId = setInterval(fetchServices, 5000);
+    }
+
+    function stopInterval() {
+        clearInterval(intervalId);
+    }
+
+    intervalSwitch.addEventListener('change', function() {
+        if (this.checked) {
+            startInterval();
+            localStorage.setItem('autoRefresh', 'enabled');
+        } else {
+            stopInterval();
+            localStorage.setItem('autoRefresh', 'disabled');
+        }
+    });
+
+    // Check if auto-refresh was previously enabled
+    if (localStorage.getItem('autoRefresh') === 'enabled') {
+        intervalSwitch.checked = true;
+        startInterval();
+    } else {
+        intervalSwitch.checked = false;
+    }
+
     // Run initial fetch
     fetchServices();
     fetchLogs();
-    setInterval(fetchServices, 5000); // Fetch services every 5 seconds
+    if (intervalSwitch.checked) {
+        startInterval(); // Start the interval if enabled
+    }
 });

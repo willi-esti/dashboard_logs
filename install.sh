@@ -4,7 +4,7 @@ set -e
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [--install] [--enable-ssl] [--enable-http] [--uninstall]"
+    echo "Usage: $0 [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]"
     exit 1
 }
 
@@ -24,12 +24,16 @@ ENABLE_SSL=false
 ENABLE_HTTP=false
 UNINSTALL=false
 INSTALL=false
+ADD_SUDO_RULES=false
+REMOVE_SUDO_RULES=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
         --enable-ssl) ENABLE_SSL=true ;;
         --enable-http) ENABLE_HTTP=true ;;
         --uninstall) UNINSTALL=true ;;
+        --add-sudo-rules) ADD_SUDO_RULES=true ;;
+        --remove-sudo-rules) REMOVE_SUDO_RULES=true ;;
         *) usage ;;
     esac
     shift
@@ -52,6 +56,9 @@ if [ "$UNINSTALL" = true ]; then
     a2dissite server-dashboard-ssl || true
     rm -f /etc/apache2/sites-available/default-ssl.conf
     rm -f /etc/apache2/ssl/apache.crt /etc/apache2/ssl/apache.key
+
+    echo "Removing sudo rules for services..."
+    rm -f /etc/sudoers.d/www-data-restart
 
     echo "Restarting Apache to apply changes..."
     systemctl restart apache2
@@ -187,4 +194,41 @@ EOF'
     if [ "$ENABLE_SSL" = true ]; then
         echo "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
     fi
+fi
+
+if [ "$ADD_SUDO_RULES" = true ]; then
+    echo "Adding sudo rules for services..."
+
+    # Load environment variables
+    source .env
+
+    # Convert comma-separated strings to arrays
+    IFS=',' read -r -a services <<< "$SERVICES"
+
+    # Add restart rule for each filtered service
+    for service in "${services[@]}"; do
+        RULE="www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart $service"
+        if sudo grep -Fxq "$RULE" /etc/sudoers; then
+            echo "Rule for $service already exists in sudoers file."
+        else
+            echo "$RULE" | sudo tee -a /etc/sudoers.d/www-data-restart
+            sudo visudo -cf /etc/sudoers.d/www-data-restart
+            if [ $? -eq 0 ]; then
+                echo "Rule for $service added successfully."
+            else
+                echo "Failed to add rule for $service. Please check the sudoers file syntax."
+                sudo rm /etc/sudoers.d/www-data-restart
+            fi
+        fi
+    done
+
+    echo "Sudo rules added successfully."
+    exit 0
+fi
+
+if [ "$REMOVE_SUDO_RULES" = true ]; then
+    echo "Removing sudo rules for services..."
+    rm -f /etc/sudoers.d/www-data-restart
+    echo "Sudo rules removed successfully."
+    exit 0
 fi
