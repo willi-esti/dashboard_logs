@@ -435,7 +435,7 @@ if [ "$ADD_SUDO_RULES" = true ]; then
         if sudo grep -Fxq "$RESTART_RULE" /etc/sudoers.d/${WEB_USER}-restart; then
             info "Restart rule for $service already exists in sudoers file."
         else
-            info "$RESTART_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            echo "$RESTART_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
                 info "Restart rule for $service added successfully."
@@ -448,7 +448,7 @@ if [ "$ADD_SUDO_RULES" = true ]; then
         if sudo grep -Fxq "$STOP_RULE" /etc/sudoers.d/${WEB_USER}-restart; then
             info "Stop rule for $service already exists in sudoers file."
         else
-            info "$STOP_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            echo "$STOP_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
                 info "Stop rule for $service added successfully."
