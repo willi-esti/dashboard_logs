@@ -57,10 +57,12 @@ detect_os() {
     fi
 }
 
+# Function to display information messages
 info() {
     echo -e "\e[32mINFO: $1\e[0m"
 }
 
+# Function to display warning messages
 warning() {
     echo -e "\e[33mWARNING: $1\e[0m"
     while true; do
@@ -73,6 +75,7 @@ warning() {
     done
 }
 
+# Function to display error messages
 error() {
     echo -e "\e[31mERROR: $1\e[0m"
 }
@@ -128,6 +131,7 @@ enable_apache_site() {
     fi
 }
 
+# Function to disable Apache sites
 disable_apache_site() {
     if [ "$OS" = "debian" ]; then
         a2dissite "$1"
@@ -158,6 +162,7 @@ configure_selinux() {
         info "SELinux is not installed."
     fi
 }
+
 # Function to ensure Apache or www-data user can access log directories
 configure_log_dirs() {
     LOG_GROUP="loggroup"
@@ -169,6 +174,34 @@ configure_log_dirs() {
         chgrp -R ${LOG_GROUP} "$log_dir"
         chmod -R g+rwX "$log_dir"
     done
+}
+
+# Function to configure logrotate
+configure_logrotate() {
+    info "Configuring logrotate..."
+
+    # Install logrotate if not already installed
+    install_packages logrotate
+
+    LOG_DIR=${LOG_DIR:-${APP_DIR}/logs}
+
+    bash -c "cat <<EOF > /etc/logrotate.d/server-dashboard
+$LOG_DIR/*.log {
+    size 50M
+    rotate 5
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    create 0640 ${WEB_USER} ${WEB_USER}
+}
+EOF"
+
+    info "Logrotate configuration complete."
+
+    # Reload logrotate configuration if needed
+    systemctl restart logrotate.timer
 }
 
 # Check if the script is run as root
@@ -259,33 +292,6 @@ if [ "$UNINSTALL" = true ]; then
     exit 0
 fi
 
-configure_logrotate() {
-    info "Configuring logrotate..."
-
-    # Install logrotate if not already installed
-    install_packages logrotate
-
-    LOG_DIR=${LOG_DIR:-${APP_DIR}/logs}
-
-    bash -c "cat <<EOF > /etc/logrotate.d/server-dashboard
-$LOG_DIR/*.log {
-    size 50M
-    rotate 5
-    compress
-    delaycompress
-    missingok
-    notifempty
-    copytruncate
-    create 0640 ${WEB_USER} ${WEB_USER}
-}
-EOF"
-
-    info "Logrotate configuration complete."
-
-    # Reload logrotate configuration if needed
-    systemctl restart logrotate.timer
-}
-
 if [ "$INSTALL" = true ]; then
     info "Installing necessary packages..."
     if [ "$OS" = "debian" ]; then
@@ -320,7 +326,13 @@ if [ "$INSTALL" = true ]; then
 
     info "Installing Composer dependencies..."
     cd ${APP_DIR}
-    install_packages composer
+    if [ "$OS" = "debian" ]; then
+        install_packages composer
+    elif [ "$OS" = "redhat" ]; then
+        install_packages php-cli
+        curl -sS https://getcomposer.org/installer | php
+        mv composer.phar /usr/sbin/composer
+    fi
     composer install --no-dev --no-interaction
 
     if [ "$ENABLE_HTTP" = true ]; then
