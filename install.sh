@@ -142,6 +142,9 @@ disable_apache_site() {
 configure_selinux() {
     if command -v getenforce &> /dev/null; then
         if [ "$(getenforce)" != "Disabled" ]; then
+            # Install policycoreutils if not already installed semanage
+            install_packages policycoreutils policycoreutils-python-utils
+
             info "Configuring SELinux policies..."
 
             # Allow Apache to connect to the network
