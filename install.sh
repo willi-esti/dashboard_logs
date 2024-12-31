@@ -228,14 +228,8 @@ if [ "$INSTALL" = true ]; then
 
     echo "Installing necessary packages..."
     if [ "$OS" = "debian" ]; then
-        APACHE_SERVICE="apache2"
-        APACHE_SSL_DIR="apache2/ssl"
-        WEB_USER="www-data"
         install_packages apache2 php libapache2-mod-php
     elif [ "$OS" = "redhat" ]; then
-        APACHE_SERVICE="httpd"
-        APACHE_SSL_DIR="httpd/ssl"
-        WEB_USER="apache"
         install_packages httpd php mod_ssl
     fi
 
