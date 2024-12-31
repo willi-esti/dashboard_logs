@@ -358,8 +358,8 @@ if [ "$INSTALL" = true ]; then
     ProxyPass /api/logs/stream ws://localhost:8080/
     ProxyPassReverse /api/logs/stream ws://localhost:8080/
 
-    ErrorLog \${APACHE_LOG_DIR}/error.log
-    CustomLog \${APACHE_LOG_DIR}/access.log combined
+    ErrorLog logs/error.log
+    CustomLog logs/access.log combined
 
     
 EOF"
@@ -409,8 +409,8 @@ EOF"
     ProxyPass /api/logs/stream ws://localhost:8080/
     ProxyPassReverse /api/logs/stream ws://localhost:8080/
 
-    ErrorLog \${APACHE_LOG_DIR}/error.log
-    CustomLog \${APACHE_LOG_DIR}/access.log combined
+    ErrorLog logs/error.log
+    CustomLog logs/access.log combined
 </VirtualHost>
 EOF"
         enable_apache_module proxy
