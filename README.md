@@ -54,7 +54,7 @@ Server Dashboard is a web application that allows users to manage server service
   sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]
   ```
 
-  - `--install`: Install the server dashboard and run the websocket-server service. (The project will be in /var/www/html/server-dashboard)
+  - `--install`: Install the server dashboard and run the websocket-server service. (The project will be in {{APP_DIR}} configured in the .env)
   - `--enable-ssl`: Enable SSL and generate self-signed certificates. (The file server-dashboard-ssl.conf will be added to sites-available in the apache conf)
   - `--enable-http`: Set up HTTP configuration. (The file server-dashboard.conf will be added to sites-available in the apache conf)
   - `--uninstall`: Uninstall the server dashboard.

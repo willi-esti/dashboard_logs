@@ -3,7 +3,7 @@
 
 // env
 if ($argc < 2) {
-    die("Usage: php -f websocket-server.php /var/www/html/server-dashboard\n");
+    die("Usage: php -f websocket-server.php /path/to/env\n");
 }
 
 $envPath = $argv[1];

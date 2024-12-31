@@ -8,6 +8,11 @@ usage() {
     exit 1
 }
 
+# Load environment variables
+source .env
+
+APP_DIR=${APP_DIR:-/var/www/html/server-dashboard}
+
 # Function to detect the operating system
 detect_os() {
     if [ -f /etc/redhat-release ]; then
@@ -68,6 +73,31 @@ enable_apache_site() {
     fi
 }
 
+# Function to configure SELinux
+configure_selinux() {
+    if command -v getenforce &> /dev/null; then
+        if [ "$(getenforce)" != "Disabled" ]; then
+            echo "Configuring SELinux policies..."
+
+            # Allow Apache to connect to the network
+            setsebool -P httpd_can_network_connect 1
+
+            # Allow Apache to connect to the WebSocket server
+            setsebool -P httpd_can_network_relay 1
+
+            # Allow Apache to read and write to the app directory
+            semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}(/.*)?"
+            restorecon -Rv ${APP_DIR}
+
+            echo "SELinux configuration complete."
+        else
+            echo "SELinux is disabled."
+        fi
+    else
+        echo "SELinux is not installed."
+    fi
+}
+
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
     echo "This script must be run as root."
@@ -113,7 +143,7 @@ if [ "$UNINSTALL" = true ]; then
     disable_service websocket-server
 
     echo "Removing server dashboard files..."
-    rm -rf /var/www/html/server-dashboard
+    rm -rf ${APP_DIR}
 
     echo "Removing Apache configuration for SSL if exists..."
     if [ "$OS" = "debian" ]; then
@@ -132,6 +162,7 @@ if [ "$UNINSTALL" = true ]; then
     echo "Uninstallation complete."
     exit 0
 fi
+
 configure_logrotate() {
     echo "Configuring logrotate..."
 
@@ -141,7 +172,7 @@ configure_logrotate() {
     # Load environment variables
     source .env
 
-    LOG_PATH=${LOG_DIR:-/var/www/html/server-dashboard/logs}
+    LOG_PATH=${LOG_DIR:-${APP_DIR}/logs}
 
     bash -c "cat <<EOF > /etc/logrotate.d/server-dashboard
 $LOG_PATH/*.log {
@@ -195,24 +226,27 @@ if [ "$INSTALL" = true ]; then
     restart_service ${APACHE_SERVICE}
 
     echo "Creating directory for the server dashboard..."
-    mkdir -p /var/www/html/server-dashboard
+    mkdir -p ${APP_DIR}
 
     echo "Copying files to the server dashboard directory, including hidden files..."
     shopt -s dotglob
-    cp -r * /var/www/html/server-dashboard/
+    cp -r * ${APP_DIR}
     shopt -u dotglob
 
     echo "Setting the correct permissions..."
-    chown -R ${WEB_USER}:${WEB_USER} /var/www/html/server-dashboard
-    chmod -R 755 /var/www/html/server-dashboard
+    chown -R ${WEB_USER}:${WEB_USER} ${APP_DIR}
+    chmod -R 755 ${APP_DIR}
 
     echo "Restarting Apache to apply changes..."
     restart_service ${APACHE_SERVICE}
     echo "Copying websocket server service file to /etc/systemd/system..."
-    cp /var/www/html/server-dashboard/system/websocket-server.service /etc/systemd/system/
+    cp ${APP_DIR}/system/websocket-server.service /etc/systemd/system/
+
+    echo "Replacing placeholders in websocket server service file..."
+    sed -i "s|{{APP_DIR}}|${APP_DIR}|g" /etc/systemd/system/websocket-server.service
 
     echo "Installing Composer dependencies..."
-    cd /var/www/html/server-dashboard
+    cd ${APP_DIR}
     install_packages composer
     composer install
 
@@ -226,9 +260,9 @@ if [ "$INSTALL" = true ]; then
         bash -c "cat <<EOF > $CONFIG_PATH
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/html/server-dashboard/public
+    DocumentRoot ${APP_DIR}/public
 
-    <Directory /var/www/html/server-dashboard/public>
+    <Directory ${APP_DIR}/public>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -272,13 +306,13 @@ EOF"
         bash -c "cat <<EOF > $CONFIG_PATH
 <VirtualHost *:443>
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/html/server-dashboard/public
+    DocumentRoot ${APP_DIR}/public
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt
     SSLCertificateKeyFile /etc/${APACHE_SSL_DIR}/apache.key
 
-    <Directory /var/www/html/server-dashboard/public>
+    <Directory ${APP_DIR}/public>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -303,6 +337,8 @@ EOF"
     start_service websocket-server
 
     configure_logrotate
+
+    configure_selinux
 
     echo "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
