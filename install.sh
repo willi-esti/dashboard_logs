@@ -11,30 +11,29 @@ usage() {
 # Function to verify the .env variables
 verify_env() {
     if [ ! -d public ] || [ ! -f composer.json ]; then
-        echo "public folder or composer.json file is missing."
-        echo "Please make sure you are running the script in the correct directory."
+        error "public folder or composer.json file is missing."
+        error "Please make sure you are running the script in the correct directory."
         exit 1
     fi
 
     if [ -z "$APP_DIR" ] || [ -z "$SERVICES" ] || [ -z "$LOG_DIRS" ]; then
-        echo "APP_DIR, SERVICES, and LOG_DIRS are required in the .env file."
+        error "APP_DIR, SERVICES, and LOG_DIRS are required in the .env file."
         exit 1
     fi
     IFS=',' read -r -a services <<< "$SERVICES"
     for service in "${services[@]}"; do
-        if [[ ! "$service" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-            echo "Invalid service name: $service"
+        if [[ ! "$service" =~ ^[a-zA-Z0-9\._-]+$ ]]; then
+            error "Invalid service name: $service"
             exit 1
         fi
     done
     IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
     for log_dir in "${log_dirs[@]}"; do
         if [ ! -d "$log_dir" ]; then
-            echo "Log directory $log_dir does not exist."
-            exit 1
+            warning "Log directory $log_dir does not exist."
         fi
-        if [[ "$log_dir" != */ ]]; then
-            echo "Log directory $log_dir should end with a slash."
+        if [[ "$log_dir" =~ "^.*\/$" ]]; then
+            error "Log directory $log_dir should end with a slash."
             exit 1
         fi
     done
@@ -53,9 +52,29 @@ detect_os() {
         APACHE_SSL_DIR="apache2/ssl"
         WEB_USER="www-data"
     else
-        echo "Unsupported operating system."
+        error "Unsupported operating system."
         exit 1
     fi
+}
+
+info() {
+    echo -e "\e[32mINFO: $1\e[0m"
+}
+
+warning() {
+    echo -e "\e[33mWARNING: $1\e[0m"
+    while true; do
+        read -p "Do you want to continue anyway? (y/n): " choice
+        case "$choice" in 
+            y|Y ) echo "Continuing..."; break;;
+            n|N ) echo "Exiting..."; exit 1;;
+            * ) echo "Invalid choice. Please enter y or n.";;
+        esac
+    done
+}
+
+error() {
+    echo -e "\e[31mERROR: $1\e[0m"
 }
 
 # Function to install packages
@@ -119,7 +138,7 @@ disable_apache_site() {
 configure_selinux() {
     if command -v getenforce &> /dev/null; then
         if [ "$(getenforce)" != "Disabled" ]; then
-            echo "Configuring SELinux policies..."
+            info "Configuring SELinux policies..."
 
             # Allow Apache to connect to the network
             setsebool -P httpd_can_network_connect 1
@@ -131,12 +150,12 @@ configure_selinux() {
             semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}(/.*)?"
             restorecon -Rv ${APP_DIR}
 
-            echo "SELinux configuration complete."
+            info "SELinux configuration complete."
         else
-            echo "SELinux is disabled."
+            info "SELinux is disabled."
         fi
     else
-        echo "SELinux is not installed."
+        info "SELinux is not installed."
     fi
 }
 # Function to ensure Apache or www-data user can access log directories
@@ -154,7 +173,7 @@ configure_log_dirs() {
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
-    echo "This script must be run as root."
+    warning "This script must be run as root."
     exit 1
 fi
 
@@ -165,9 +184,9 @@ fi
 
 # Check for .env file
 if [ ! -f .env ]; then
-    echo ".env file is missing."
-    echo "Please create it by copying the .env.example file:"
-    echo "cp .env.example .env"
+    error ".env file is missing."
+    info "Please create it by copying the .env.example file:"
+    info "cp .env.example .env"
     exit 1
 fi
 
@@ -175,11 +194,11 @@ fi
 source .env
 
 # Verify the .env variables
-echo "Verifying environment variables..."
+info "Verifying environment variables..."
 verify_env
 
 # Detect the operating system
-echo "Detecting operating system..."
+info "Detecting operating system..."
 detect_os
 
 # Parse arguments
@@ -203,22 +222,22 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [ "$UNINSTALL" = true ]; then
-    echo "Uninstalling server dashboard..."
+    info "Uninstalling server dashboard..."
 
-    echo "Stopping Apache and websocket server..."
+    info "Stopping Apache and websocket server..."
     stop_service ${APACHE_SERVICE}
     stop_service websocket-server
 
-    echo "Disabling websocket server..."
+    info "Disabling websocket server..."
     disable_service websocket-server
 
-    echo "Removing websocket server service file..."
+    info "Removing websocket server service file..."
     rm -f /etc/systemd/system/websocket-server.service
 
-    echo "Removing server dashboard files..."
+    info "Removing server dashboard files..."
     rm -rf ${APP_DIR}
 
-    echo "Removing Apache configuration for SSL if exists..."
+    info "Removing Apache configuration for SSL if exists..."
     if [ "$OS" = "debian" ]; then
         disable_apache_site server-dashboard-ssl
         rm -f /etc/apache2/sites-available/server-dashboard-ssl.conf
@@ -230,18 +249,18 @@ if [ "$UNINSTALL" = true ]; then
     fi
     rm -f /etc/${APACHE_SSL_DIR}/apache.crt /etc/${APACHE_SSL_DIR}/apache.key
 
-    echo "Removing sudo rules for services..."
+    info "Removing sudo rules for services..."
     rm -f /etc/sudoers.d/${WEB_USER}-restart
 
-    echo "Restarting Apache to apply changes..."
+    info "Restarting Apache to apply changes..."
     restart_service ${APACHE_SERVICE}
 
-    echo "Uninstallation complete."
+    info "Uninstallation complete."
     exit 0
 fi
 
 configure_logrotate() {
-    echo "Configuring logrotate..."
+    info "Configuring logrotate..."
 
     # Install logrotate if not already installed
     install_packages logrotate
@@ -261,51 +280,51 @@ $LOG_DIR/*.log {
 }
 EOF"
 
-    echo "Logrotate configuration complete."
+    info "Logrotate configuration complete."
 
     # Reload logrotate configuration if needed
     systemctl restart logrotate.timer
 }
 
 if [ "$INSTALL" = true ]; then
-    echo "Installing necessary packages..."
+    info "Installing necessary packages..."
     if [ "$OS" = "debian" ]; then
         install_packages apache2 php libapache2-mod-php
     elif [ "$OS" = "redhat" ]; then
         install_packages httpd php mod_ssl
     fi
 
-    echo "Enabling Apache mod_rewrite..."
+    info "Enabling Apache mod_rewrite..."
     enable_apache_module rewrite
     restart_service ${APACHE_SERVICE}
 
-    echo "Creating directory for the server dashboard..."
+    info "Creating directory for the server dashboard..."
     mkdir -p ${APP_DIR}
 
-    echo "Copying files to the server dashboard directory, including hidden files..."
+    info "Copying files to the server dashboard directory, including hidden files..."
     shopt -s dotglob
     cp -r * ${APP_DIR}
     shopt -u dotglob
 
-    echo "Setting the correct permissions..."
+    info "Setting the correct permissions..."
     chown -R ${WEB_USER}:${WEB_USER} ${APP_DIR}
     chmod -R 755 ${APP_DIR}
 
-    echo "Restarting Apache to apply changes..."
+    info "Restarting Apache to apply changes..."
     restart_service ${APACHE_SERVICE}
-    echo "Copying websocket server service file to /etc/systemd/system..."
+    info "Copying websocket server service file to /etc/systemd/system..."
     cp ${APP_DIR}/system/websocket-server.service /etc/systemd/system/
 
-    echo "Replacing placeholders in websocket server service file..."
+    info "Replacing placeholders in websocket server service file..."
     sed -i "s|{{APP_DIR}}|${APP_DIR}|g" /etc/systemd/system/websocket-server.service
 
-    echo "Installing Composer dependencies..."
+    info "Installing Composer dependencies..."
     cd ${APP_DIR}
     install_packages composer
     composer install
 
     if [ "$ENABLE_HTTP" = true ]; then
-        echo "Setting up HTTP configuration..."
+        info "Setting up HTTP configuration..."
         if [ "$OS" = "debian" ]; then
             CONFIG_PATH="/etc/apache2/sites-available/server-dashboard.conf"
         elif [ "$OS" = "redhat" ]; then
@@ -347,7 +366,7 @@ EOF"
     fi
 
     if [ "$ENABLE_SSL" = true ]; then
-        echo "Enabling SSL and generating self-signed certificates..."
+        info "Enabling SSL and generating self-signed certificates..."
         install_packages openssl
         enable_apache_module ssl
         mkdir -p /etc/${APACHE_SSL_DIR}
@@ -386,7 +405,7 @@ EOF"
         systemctl reload ${APACHE_SERVICE}
     fi
     
-    echo "Enabling and starting websocket server..."
+    info "Enabling and starting websocket server..."
     enable_service websocket-server
     start_service websocket-server
 
@@ -396,14 +415,14 @@ EOF"
 
     configure_log_dirs
 
-    echo "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
+    info "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
-        echo "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
+        info "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
     fi
 fi
 
 if [ "$ADD_SUDO_RULES" = true ]; then
-    echo "Adding sudo rules for services..."
+    info "Adding sudo rules for services..."
 
     # Convert comma-separated strings to arrays
     IFS=',' read -r -a services <<< "$SERVICES"
@@ -414,40 +433,39 @@ if [ "$ADD_SUDO_RULES" = true ]; then
         STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /bin/systemctl stop $service"
         
         if sudo grep -Fxq "$RESTART_RULE" /etc/sudoers.d/${WEB_USER}-restart; then
-            echo "Restart rule for $service already exists in sudoers file."
+            info "Restart rule for $service already exists in sudoers file."
         else
-            echo "$RESTART_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            info "$RESTART_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
-                echo "Restart rule for $service added successfully."
+                info "Restart rule for $service added successfully."
             else
-                echo "Failed to add restart rule for $service. Please check the sudoers file syntax."
+                warning "Failed to add restart rule for $service. Please check the sudoers file syntax."
                 sudo rm /etc/sudoers.d/${WEB_USER}-restart
             fi
         fi
 
         if sudo grep -Fxq "$STOP_RULE" /etc/sudoers.d/${WEB_USER}-restart; then
-            echo "Stop rule for $service already exists in sudoers file."
+            info "Stop rule for $service already exists in sudoers file."
         else
-            echo "$STOP_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            info "$STOP_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
-                echo "Stop rule for $service added successfully."
+                info "Stop rule for $service added successfully."
             else
-                echo "Failed to add stop rule for $service. Please check the sudoers file syntax."
+                warning "Failed to add stop rule for $service. Please check the sudoers file syntax."
                 sudo rm /etc/sudoers.d/${WEB_USER}-restart
             fi
         fi
     done
 
-    echo "Sudo rules added successfully."
+    info "Sudo rules added successfully."
     exit 0
 fi
 
-
 if [ "$REMOVE_SUDO_RULES" = true ]; then
-    echo "Removing sudo rules for services..."
+    info "Removing sudo rules for services..."
     rm -f /etc/sudoers.d/${WEB_USER}-restart
-    echo "Sudo rules removed successfully."
+    info "Sudo rules removed successfully."
     exit 0
 fi
