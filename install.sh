@@ -17,8 +17,14 @@ APP_DIR=${APP_DIR:-/var/www/html/server-dashboard}
 detect_os() {
     if [ -f /etc/redhat-release ]; then
         OS="redhat"
+        APACHE_SERVICE="httpd"
+        APACHE_SSL_DIR="httpd/ssl"
+        WEB_USER="apache"
     elif [ -f /etc/debian_version ]; then
         OS="debian"
+        APACHE_SERVICE="apache2"
+        APACHE_SSL_DIR="apache2/ssl"
+        WEB_USER="www-data"
     else
         echo "Unsupported operating system."
         exit 1
