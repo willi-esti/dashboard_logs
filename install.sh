@@ -8,10 +8,37 @@ usage() {
     exit 1
 }
 
-# Load environment variables
-source .env
+# Function to verify the .env variables
+verify_env() {
+    if [ ! -d public ] || [ ! -f composer.json ]; then
+        echo "public folder or composer.json file is missing."
+        echo "Please make sure you are running the script in the correct directory."
+        exit 1
+    fi
 
-APP_DIR=${APP_DIR:-/var/www/html/server-dashboard}
+    if [ -z "$APP_DIR" ] || [ -z "$SERVICES" ] || [ -z "$LOG_DIRS" ]; then
+        echo "APP_DIR, SERVICES, and LOG_DIRS are required in the .env file."
+        exit 1
+    fi
+    IFS=',' read -r -a services <<< "$SERVICES"
+    for service in "${services[@]}"; do
+        if [[ ! "$service" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+            echo "Invalid service name: $service"
+            exit 1
+        fi
+    done
+    IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
+    for log_dir in "${log_dirs[@]}"; do
+        if [ ! -d "$log_dir" ]; then
+            echo "Log directory $log_dir does not exist."
+            exit 1
+        fi
+        if [[ "$log_dir" != */ ]]; then
+            echo "Log directory $log_dir should end with a slash."
+            exit 1
+        fi
+    done
+}
 
 # Function to detect the operating system
 detect_os() {
@@ -136,7 +163,23 @@ if [ "$#" -eq 0 ]; then
     usage
 fi
 
+# Check for .env file
+if [ ! -f .env ]; then
+    echo ".env file is missing."
+    echo "Please create it by copying the .env.example file:"
+    echo "cp .env.example .env"
+    exit 1
+fi
+
+# Load environment variables
+source .env
+
+# Verify the .env variables
+echo "Verifying environment variables..."
+verify_env
+
 # Detect the operating system
+echo "Detecting operating system..."
 detect_os
 
 # Parse arguments
@@ -169,6 +212,9 @@ if [ "$UNINSTALL" = true ]; then
     echo "Disabling websocket server..."
     disable_service websocket-server
 
+    echo "Removing websocket server service file..."
+    rm -f /etc/systemd/system/websocket-server.service
+
     echo "Removing server dashboard files..."
     rm -rf ${APP_DIR}
 
@@ -200,13 +246,10 @@ configure_logrotate() {
     # Install logrotate if not already installed
     install_packages logrotate
 
-    # Load environment variables
-    source .env
-
-    LOG_PATH=${LOG_DIR:-${APP_DIR}/logs}
+    LOG_DIR=${LOG_DIR:-${APP_DIR}/logs}
 
     bash -c "cat <<EOF > /etc/logrotate.d/server-dashboard
-$LOG_PATH/*.log {
+$LOG_DIR/*.log {
     size 50M
     rotate 5
     compress
@@ -225,20 +268,6 @@ EOF"
 }
 
 if [ "$INSTALL" = true ]; then
-    # Check for .env file
-    if [ ! -f .env ]; then
-        echo ".env file is missing."
-        echo "Please create it by copying the .env.example file:"
-        echo "cp .env.example .env"
-        exit 1
-    fi
-
-    if [ ! -d public ] || [ ! -f composer.json ]; then
-        echo "public folder or composer.json file is missing."
-        echo "Please make sure you are running the script in the correct directory."
-        exit 1
-    fi
-
     echo "Installing necessary packages..."
     if [ "$OS" = "debian" ]; then
         install_packages apache2 php libapache2-mod-php
@@ -375,9 +404,6 @@ fi
 
 if [ "$ADD_SUDO_RULES" = true ]; then
     echo "Adding sudo rules for services..."
-
-    # Load environment variables
-    source .env
 
     # Convert comma-separated strings to arrays
     IFS=',' read -r -a services <<< "$SERVICES"
