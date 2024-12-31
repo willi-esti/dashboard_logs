@@ -321,7 +321,7 @@ if [ "$INSTALL" = true ]; then
     info "Installing Composer dependencies..."
     cd ${APP_DIR}
     install_packages composer
-    composer install
+    composer install --no-dev --no-interaction
 
     if [ "$ENABLE_HTTP" = true ]; then
         info "Setting up HTTP configuration..."
