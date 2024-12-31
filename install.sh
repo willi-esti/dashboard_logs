@@ -327,7 +327,7 @@ if [ "$INSTALL" = true ]; then
     info "Installing Composer dependencies..."
     cd ${APP_DIR}
     if [ "$OS" = "debian" ]; then
-        install_packages composer
+        install_packages composer php-cli php-zip
     elif [ "$OS" = "redhat" ]; then
         install_packages php-cli
         curl -sS https://getcomposer.org/installer | php
