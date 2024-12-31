@@ -32,11 +32,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 //error_reporting(E_ALL); // Report all errors
 ini_set('log_errors', 1); // Enable error logging
-ini_set('error_log', $envPath . '/logs/php_errors.log'); // Set the error log file
+ini_set('error_log', $envPath . '/logs/websocket_server_php_errors.log'); // Set the error log file
 
 // Create a log channel
 $log = new Logger('websocket_server');
-$log->pushHandler(new StreamHandler( $envPath . '/logs/server.log', Logger::DEBUG));
+$log->pushHandler(new StreamHandler( $envPath . '/logs/websocket_server.log', Logger::DEBUG));
 
 class LogServer implements MessageComponentInterface {
     protected $clients;

@@ -23,6 +23,7 @@ if ($requestMethod === 'GET') {
     jsonResponse($data);
 } else if ($requestMethod === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
+    logError(json_encode($data));
     $service = $data['service'];
     $action = $data['action'];
 
