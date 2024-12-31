@@ -4,8 +4,8 @@ Description=WebSocket Server
 [Service]
 ExecStart=/usr/bin/php {{APP_DIR}}/system/websocket-server.php {{APP_DIR}}
 Restart=always
-User=www-data
-Group=www-data
+User={{WEB_USER}}
+Group={{WEB_USER}}
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=PHP_HOME=/usr/local/bin/php
 WorkingDirectory={{APP_DIR}}/public/api

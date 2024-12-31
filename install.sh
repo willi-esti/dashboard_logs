@@ -383,6 +383,7 @@ if [ "$INSTALL" = true ]; then
 
     info "Replacing placeholders in websocket server service file..."
     sed -i "s|{{APP_DIR}}|${APP_DIR}|g" /etc/systemd/system/websocket-server.service
+    sed -i "s|{{WEB_USER}}|${WEB_USER}|g" /etc/systemd/system/websocket-server.service
 
     info "Installing Composer dependencies..."
     cd ${APP_DIR}
