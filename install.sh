@@ -4,7 +4,16 @@ set -e
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]"
+    echo "Usage: $0 [--install] [--enable-http] [--enable-ssl] [--firewall] [--add-sudo-rules] [--remove-sudo-rules] [--uninstall]"
+    echo "  --install           Install the server dashboard, SELinux configuration if Enforcing, and logrotate configuration"
+    echo "  --enable-http       Enable HTTP for the server dashboard"
+    echo "  --enable-ssl        Enable SSL for the server dashboard"
+    echo "  --firewall          Configure firewall, ufw for Debian and firewalld for Red Hat, ports 80, 443"
+    echo "  --add-sudo-rules    Add sudo rules for services"
+    echo "  --remove-sudo-rules Remove sudo rules for services"
+    echo "  --uninstall         Uninstall the server dashboard, remove SELinux configuration, and logrotate configuration"
+    echo ""
+    echo "Example: $0 --install --enable-http --enable-ssl --firewall --add-sudo-rules"
     exit 1
 }
 
@@ -207,6 +216,31 @@ EOF"
     systemctl restart logrotate.timer
 }
 
+# Function to configure firewall
+configure_firewall() {
+    info "Configuring firewall..."
+
+    if [ "$OS" = "debian" ]; then
+        install_packages ufw
+        ufw allow 80
+        if [ "$ENABLE_SSL" = true ]; then
+            ufw allow 443
+        fi
+        ufw --force enable
+    elif [ "$OS" = "redhat" ]; then
+        install_packages firewalld
+        systemctl start firewalld
+        systemctl enable firewalld
+        firewall-cmd --zone=public --add-service=http --permanent
+        if [ "$ENABLE_SSL" = true ]; then
+            firewall-cmd --zone=public --add-service=https --permanent
+        fi
+        firewall-cmd --reload
+    fi
+
+    info "Firewall configuration complete."
+}
+
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
     warning "This script must be run as root."
@@ -244,14 +278,16 @@ UNINSTALL=false
 INSTALL=false
 ADD_SUDO_RULES=false
 REMOVE_SUDO_RULES=false
+FIREWALL=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
-        --enable-ssl) ENABLE_SSL=true ;;
         --enable-http) ENABLE_HTTP=true ;;
-        --uninstall) UNINSTALL=true ;;
+        --enable-ssl) ENABLE_SSL=true ;;
+        --firewall) FIREWALL=true ;;
         --add-sudo-rules) ADD_SUDO_RULES=true ;;
         --remove-sudo-rules) REMOVE_SUDO_RULES=true ;;
+        --uninstall) UNINSTALL=true ;;
         *) usage ;;
     esac
     shift
@@ -290,6 +326,26 @@ if [ "$UNINSTALL" = true ]; then
 
     info "Restarting Apache to apply changes..."
     restart_service ${APACHE_SERVICE}
+
+    info "Removing firewall configuration..."
+    if [ "$OS" = "debian" ]; then
+        ufw --force reset
+    elif [ "$OS" = "redhat" ]; then
+        firewall-cmd --zone=public --remove-service=http --permanent
+        firewall-cmd --zone=public --remove-service=https --permanent
+        firewall-cmd --reload
+    fi
+
+    info "Removing logrotate configuration..."
+    rm -f /etc/logrotate.d/server-dashboard
+
+    info "Removing SELinux configuration..."
+    if command -v getenforce &> /dev/null; then
+        if [ "$(getenforce)" != "Disabled" ]; then
+            setsebool -P httpd_can_network_connect 0
+            setsebool -P httpd_can_network_relay 0
+        fi
+    fi
 
     info "Uninstallation complete."
     exit 0
@@ -426,6 +482,10 @@ EOF"
     info "Enabling and starting websocket server..."
     enable_service websocket-server
     start_service websocket-server
+
+    if [ "$FIREWALL" = true ]; then
+        configure_firewall
+    fi
 
     configure_logrotate
 
