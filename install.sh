@@ -74,8 +74,12 @@ enable_apache_module() {
 enable_apache_site() {
     if [ "$OS" = "debian" ]; then
         a2ensite "$1"
-    elif [ "$OS" = "redhat" ]; then
-        ln -s /etc/httpd/conf.d/"$1".conf /etc/httpd/conf.d/"$1".conf
+    fi
+}
+
+disable_apache_site() {
+    if [ "$OS" = "debian" ]; then
+        a2dissite "$1"
     fi
 }
 
@@ -165,9 +169,13 @@ if [ "$UNINSTALL" = true ]; then
 
     echo "Removing Apache configuration for SSL if exists..."
     if [ "$OS" = "debian" ]; then
-        rm -f /etc/apache2/sites-available/default-ssl.conf
+        disable_apache_site server-dashboard-ssl
+        rm -f /etc/apache2/sites-available/server-dashboard-ssl.conf
+        disable_apache_site server-dashboard
+        rm -f /etc/apache2/sites-available/server-dashboard.conf
     elif [ "$OS" = "redhat" ]; then
-        rm -f /etc/httpd/conf.d/default-ssl.conf
+        rm -f /etc/httpd/conf.d/server-dashboard.conf
+        rm -f /etc/httpd/conf.d/server-dashboard-ssl.conf
     fi
     rm -f /etc/${APACHE_SSL_DIR}/apache.crt /etc/${APACHE_SSL_DIR}/apache.key
 
