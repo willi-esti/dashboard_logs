@@ -333,7 +333,7 @@ if [ "$INSTALL" = true ]; then
         curl -sS https://getcomposer.org/installer | php
         mv composer.phar /usr/sbin/composer
     fi
-    composer install --no-dev --no-interaction
+    su ${WEB_USER} -s /bin/bash -c 'composer install --no-dev --no-interaction'
 
     if [ "$ENABLE_HTTP" = true ]; then
         info "Setting up HTTP configuration..."
