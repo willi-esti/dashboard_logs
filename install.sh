@@ -51,6 +51,11 @@ enable_service() {
     systemctl enable "$1"
 }
 
+# Function to start services
+start_service() {
+    systemctl start "$1"
+}
+
 # Function to stop services
 stop_service() {
     systemctl stop "$1"
