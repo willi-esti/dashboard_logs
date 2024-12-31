@@ -97,6 +97,18 @@ configure_selinux() {
         echo "SELinux is not installed."
     fi
 }
+# Function to ensure Apache or www-data user can access log directories
+configure_log_dirs() {
+    LOG_GROUP="loggroup"
+    groupadd -f ${LOG_GROUP}
+    usermod -aG ${LOG_GROUP} ${WEB_USER}
+
+    IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
+    for log_dir in "${log_dirs[@]}"; do
+        chgrp -R ${LOG_GROUP} "$log_dir"
+        chmod -R g+rwX "$log_dir"
+    done
+}
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
@@ -339,6 +351,8 @@ EOF"
     configure_logrotate
 
     configure_selinux
+
+    configure_log_dirs
 
     echo "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
