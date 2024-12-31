@@ -345,6 +345,7 @@ if [ "$INSTALL" = true ]; then
         bash -c "cat <<EOF > $CONFIG_PATH
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
+    ServerName localhost
     DocumentRoot ${APP_DIR}/public
 
     <Directory ${APP_DIR}/public>
@@ -391,6 +392,7 @@ EOF"
         bash -c "cat <<EOF > $CONFIG_PATH
 <VirtualHost *:443>
     ServerAdmin webmaster@localhost
+    ServerName localhost
     DocumentRoot ${APP_DIR}/public
 
     SSLEngine on
