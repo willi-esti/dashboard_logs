@@ -313,6 +313,7 @@ if [ "$INSTALL" = true ]; then
     info "Copying files to the server dashboard directory, including hidden files..."
     shopt -s dotglob
     cp -r * ${APP_DIR}
+    mkdir -p ${APP_DIR}/logs
     shopt -u dotglob
 
     info "Setting the correct permissions..."
