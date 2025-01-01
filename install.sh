@@ -166,6 +166,13 @@ configure_selinux() {
             semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}(/.*)?"
             restorecon -Rv ${APP_DIR}
 
+            # Allow Apache to read and write to the log directories
+            IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
+            for log_dir in "${log_dirs[@]}"; do
+                semanage fcontext -a -t httpd_sys_rw_content_t "${log_dir}(/.*)?"
+                restorecon -Rv ${log_dir}
+            done
+
             info "SELinux configuration complete."
         else
             info "SELinux is disabled."
