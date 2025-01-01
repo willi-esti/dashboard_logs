@@ -168,6 +168,8 @@ configure_selinux() {
 
             # Allow Apache to execute systemctl status
             echo "
+module httpd_systemctl 1.0;
+
 require {
     type httpd_t;
     type init_t;
@@ -176,6 +178,7 @@ require {
 
 # Allow httpd_t to execute systemctl status
 allow httpd_t init_t:system status;
+
 " > /tmp/httpd_systemctl.te
 
             checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te
