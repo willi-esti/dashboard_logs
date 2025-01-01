@@ -224,6 +224,9 @@ allow httpd_t shadow_t:file read;
                 restorecon -Rv ${log_dir}
             done
 
+            # crutial cause if some workers are still running they won't have access to the new context
+            restart_service php-fpm
+            
             info "SELinux configuration complete."
         else
             info "SELinux is disabled."
