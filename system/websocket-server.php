@@ -6,6 +6,8 @@ if ($argc < 2) {
     die("Usage: php -f websocket-server.php /path/to/env\n");
 }
 
+$is_checking_existence = false;
+
 $envPath = $argv[1];
 if (!file_exists($envPath . '/.env')) {
     die("The .env file does not exist in the specified directory: " . $envPath . "\n");
@@ -137,7 +139,7 @@ class LogServer implements MessageComponentInterface {
 
     protected function displayLinesInRange(ConnectionInterface $client, $filename, $startLine = null, $endLine = null, $lastLines = null) {
         try {
-            if (!file_exists($filename)) {
+            if (!file_exists($filename) && $is_checking_existence) {
                 $this->logger->error("File does not exist", ['filename' => $filename]);
                 $client->send(json_encode(['error' => 'File does not exist']));
                 return;
@@ -158,7 +160,7 @@ class LogServer implements MessageComponentInterface {
                 $startLine = $totalLines - $lastLines + 1;
                 $endLine = $totalLines;
             }
-            
+            # if file empty say it
             if ($totalLines == 0) {
                 $client->send(json_encode(['getLogs' => []]));
                 return;
@@ -219,7 +221,7 @@ class LogServer implements MessageComponentInterface {
 
         if ($lastLines !== null) {
             $this->displayLinesInRange($client, $filename, null, null, $lastLines);
-            if (!file_exists($filename)) {
+            if (!file_exists($filename) && $is_checking_existence) {
                 $this->logger->error("File does not exist", ['filename' => $filename]);
                 $client->send(json_encode(['error' => 'File does not exist']));
                 return;
@@ -235,23 +237,29 @@ class LogServer implements MessageComponentInterface {
 
         $this->loop->addPeriodicTimer(2, function() use ($client, $filename, &$lastLineCount) {
             try {
-                if (file_exists($filename)) {
-                    $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                    $currentLineCount = count($lines);
-
-                    if ($currentLineCount > $lastLineCount) {
-                        $output = [];
-                        for ($i = $lastLineCount; $i < $currentLineCount; $i++) {
-                            $output[] = [
-                                'line' => ($i + 1),
-                                'content' => $lines[$i]
-                            ];
-                        }
-                        $client->send(json_encode(['follow' => $output]));
-                        $lastLineCount = $currentLineCount;
-                    }
-                } else {
+                if (!file_exists($filename) && $is_checking_existence) {
+                    $this->logger->error("File does not exist", ['filename' => $filename]);
                     $client->send(json_encode(['error' => 'File does not exist']));
+                    return;
+                }
+                if (!is_file($filename)) {
+                    $this->logger->error("Not a file", ['filename' => $filename]);
+                    $client->send(json_encode(['error' => 'Not a file']));
+                    return;
+                }
+                $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                $currentLineCount = count($lines);
+
+                if ($currentLineCount > $lastLineCount) {
+                    $output = [];
+                    for ($i = $lastLineCount; $i < $currentLineCount; $i++) {
+                        $output[] = [
+                            'line' => ($i + 1),
+                            'content' => $lines[$i]
+                        ];
+                    }
+                    $client->send(json_encode(['follow' => $output]));
+                    $lastLineCount = $currentLineCount;
                 }
             } catch (Exception $e) {
                 $this->logger->error("Error in periodic file monitoring", ['message' => $e->getMessage()]);

@@ -171,23 +171,55 @@ configure_selinux() {
 module httpd_systemctl 1.0;
 
 require {
+    type httpd_sys_content_t;
     type httpd_t;
+    type crond_unit_file_t;
+    type httpd_unit_file_t;
+    type sshd_unit_file_t;
+    type syslogd_var_run_t;
+    type systemd_unit_file_t;
     type init_t;
-    class system status;
+    type shadow_t;
+    type pam_var_run_t;
+    class service status;
+    class capability sys_resource;
+    class dir { add_name write read };
+    class file { getattr open read create write lock };
+    class file append;
 }
 
-# Allow httpd_t to execute systemctl status
-allow httpd_t init_t:system status;
+#============= httpd_t ==============
+allow httpd_t crond_unit_file_t:service status;
 
+#!!!! This avc is allowed in the current policy
+allow httpd_t httpd_unit_file_t:service status;
+allow httpd_t init_t:service status;
+allow httpd_t sshd_unit_file_t:service status;
+allow httpd_t syslogd_var_run_t:dir read;
+
+#!!!! This avc is allowed in the current policy
+allow httpd_t systemd_unit_file_t:service status;
+
+#!!!! This avc can be allowed using the boolean 'httpd_unified'
+allow httpd_t httpd_sys_content_t:file append;
+
+#!!!! This avc can be allowed using sudo
+allow httpd_t pam_var_run_t:dir { add_name write read };
+allow httpd_t pam_var_run_t:file { create read getattr open write lock };
+allow httpd_t self:capability sys_resource;
+allow httpd_t shadow_t:file { open read };
+allow httpd_t shadow_t:file getattr;
+
+#!!!! This avc can be allowed reading files
+allow httpd_t shadow_t:file read;
 " > /tmp/httpd_systemctl.te
 
-            checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te
-            semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp
-            semodule -i /tmp/httpd_systemctl.pp
+            checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te;semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp;semodule -i /tmp/httpd_systemctl.pp
 
             # Allow Apache to read and write to the log directories
             IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
             for log_dir in "${log_dirs[@]}"; do
+                semanage fcontext -a -t httpd_sys_rw_content_t "${log_dir}"
                 semanage fcontext -a -t httpd_sys_rw_content_t "${log_dir}(/.*)?"
                 restorecon -Rv ${log_dir}
             done
@@ -383,6 +415,7 @@ if [ "$INSTALL" = true ]; then
         install_packages apache2 php libapache2-mod-php
     elif [ "$OS" = "redhat" ]; then
         install_packages httpd php mod_ssl
+        systemctl enable ${APACHE_SERVICE}
     fi
 
     info "Enabling Apache mod_rewrite..."
