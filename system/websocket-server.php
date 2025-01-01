@@ -71,7 +71,7 @@ class LogServer implements MessageComponentInterface {
             $logFileFound = false;
             foreach ($logDirs as $logDir) {
                 $logDir = rtrim($logDir, '/') . '/';
-                if (strpos($logFile, $logDir) === 0 && preg_match('/^' . preg_quote($logDir, '/') . '[^\/]+\.log$/', $logFile)) {
+                if (strpos($logFile, $logDir) === 0 && preg_match('/^' . preg_quote($logDir, '/') . '[^\/]+log$/', $logFile)) {
                     $logFileFound = true;
                     break;
                 }

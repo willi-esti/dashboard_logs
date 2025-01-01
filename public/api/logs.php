@@ -10,13 +10,19 @@ if ($requestMethod === 'GET') {
     $files = [];
     foreach ($logDirs as $logDir) {
         $dirFiles = [];
+        if (!is_readable($logDir)) {
+            jsonResponse(['error' => 'Log directory is not readable'], 403);
+            exit;
+        }
         if ($handle = opendir($logDir)) {
             while (false !== ($file = readdir($handle))) {
                 if ($file === '.' || $file === '..') {
                     continue;
                 }
+                $filePath = "$logDir/$file";
+                $fileSize = filesize($filePath);
                 // put in array
-                array_push($dirFiles, $file);
+                array_push($dirFiles, ['name' => $file, 'size' => $fileSize]);
             }
             closedir($handle);
         }
@@ -61,7 +67,8 @@ if ($requestMethod === 'GET') {
     }
 
     $logContent = implode("", $lines);
-    jsonResponse(['content' => $logContent], 200, false);
+    $fileSize = filesize($filePath);
+    jsonResponse(['content' => $logContent, 'size' => $fileSize], 200, false);
 } else {
     jsonResponse(['error' => 'Method not allowed'], 405);
 }
