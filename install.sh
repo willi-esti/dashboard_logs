@@ -166,6 +166,22 @@ configure_selinux() {
             semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}(/.*)?"
             restorecon -Rv ${APP_DIR}
 
+            # Allow Apache to execute systemctl status
+            echo "
+require {
+    type httpd_t;
+    type init_t;
+    class system status;
+}
+
+# Allow httpd_t to execute systemctl status
+allow httpd_t init_t:system status;
+" > /tmp/httpd_systemctl.te
+
+            checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te
+            semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp
+            semodule -i /tmp/httpd_systemctl.pp
+
             # Allow Apache to read and write to the log directories
             IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
             for log_dir in "${log_dirs[@]}"; do
