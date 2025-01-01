@@ -83,7 +83,7 @@ function logError($message)
     if (!file_exists($logDir)) {
         mkdir($logDir);
     }
-    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $logDir . '/errors.log');
+    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $logDir . '/server-dashboard.log');
 }
 
 function isWhitelistedService($service)
