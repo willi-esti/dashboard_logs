@@ -158,6 +158,11 @@ class LogServer implements MessageComponentInterface {
                 $startLine = $totalLines - $lastLines + 1;
                 $endLine = $totalLines;
             }
+            
+            if ($totalLines == 0) {
+                $client->send(json_encode(['getLogs' => []]));
+                return;
+            }
 
             if ($startLine < 1 || $endLine > $totalLines || $startLine > $endLine) {
                 $client->send(json_encode(['error' => 'Invalid range']));
