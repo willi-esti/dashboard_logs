@@ -226,6 +226,8 @@ allow httpd_t shadow_t:file read;
 
             # crutial cause if some workers are still running they won't have access to the new context
             restart_service php-fpm
+
+            restart_service websocket-server
             
             info "SELinux configuration complete."
         else
@@ -553,7 +555,7 @@ EOF"
     configure_logrotate
 
     configure_log_dirs
-    
+
     configure_selinux
 
     info "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
