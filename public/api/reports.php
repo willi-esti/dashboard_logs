@@ -56,6 +56,11 @@ if (isset($_GET['debug']) && $_GET['debug'] == 'true') {
 }
 
 // Respond with the reports data
-jsonResponse($reports);
+if (empty($reports)) {
+    jsonResponse($reports, 200, false);
+}
+else {
+    jsonResponse($reports);
+}
 
 ?>
