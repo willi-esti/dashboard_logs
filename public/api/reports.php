@@ -14,6 +14,7 @@ $reportFile = $appDir . '/tmp/reports.json';
 
 // Check if the file exists
 if (!file_exists($reportFile)) {
+    file_put_contents($reportFile, json_encode([]));
     jsonResponse(['error' => 'No reports file'], 200);
 }
 
