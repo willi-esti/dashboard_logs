@@ -31,6 +31,10 @@ try {
             verifyToken();
             require 'services.php';
             break;
+        case preg_match('/^api\/reports$/', $requestUri):
+            verifyToken();
+            require 'reports.php';
+            break;
         case preg_match('/^api\/logs$/', $requestUri):
             verifyToken();
             require 'logs.php';

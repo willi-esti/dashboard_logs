@@ -41,6 +41,9 @@ async function restartService(serviceName) {
             fetchServices();
             createAlert('Service restarted successfully!', 'success', 5000, false);
         }
+        else if (result.status === 2) {
+            createAlert(result.message, 'info', 5000, false);
+        }
         else {
             createAlert('Error restarting service.', 'error', 5000, false);
         }
@@ -105,6 +108,9 @@ async function stopService(serviceName) {
             fetchServices();
             createAlert('Service stopped successfully!', 'success', 5000, false);
         }
+        else if (result.status === 2) {
+            createAlert(result.message, 'info', 5000, false);
+        }
         else {
             createAlert('Error stopping service.', 'error', 5000, false);
         }
@@ -134,6 +140,44 @@ async function getLogFiles() {
         return [];
     }
 }
+
+async function getReports() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/reports`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            }
+        });
+        updateToken(response);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching report files:', error);
+        return [];
+    }
+}
+
+async function getReportsDebug() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/reports?debug=true`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            }
+        });
+        updateToken(response);
+        // parse the json
+        console.log(await response.json());
+        return await response.json();
+    }
+    catch (error) {
+        console.error('Error fetching report files:', error);
+        return [];
+    }
+}
+
 
 // Fetch log content
 async function fetchLogContent(fileName) {

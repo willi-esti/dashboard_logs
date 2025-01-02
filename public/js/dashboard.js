@@ -78,6 +78,19 @@ async function fetchServices() {
     populateServiceList(services);
 }
 
+async function fetchReports() {
+    const reports = await getReports();
+    console.log(reports);
+    reports.forEach(report => {
+        if (report.success) {
+            createAlert(report.message, 'success', false, false);
+        }
+        else {
+            createAlert(report.message, 'error', false, false);
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     let toggleScrollButton = document.getElementById('toggleScrollButton');
@@ -160,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Run initial fetch
     fetchServices();
     fetchLogs();
+    setInterval(fetchReports, 10000);
     if (intervalSwitch.checked) {
         startInterval(); // Start the interval if enabled
     }
