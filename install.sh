@@ -228,8 +228,11 @@ allow httpd_t syslogd_var_run_t:file { read };
                 restorecon -Rv ${log_dir}
             done
 
+            # Adding apache to sudo
+            sudo usermod -aG wheel apache
+
             # crutial cause if some workers are still running they won't have access to the new context
-            restart_service php-fpm
+            restart_service php-fpm httpd
 
             restart_service websocket-server
             
@@ -592,6 +595,7 @@ if [ "$ADD_SUDO_RULES" = true ]; then
             info "Restart rule for $service already exists in sudoers file."
         else
             echo "$RESTART_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            sudo chmod 0440 /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
                 info "Restart rule for $service added successfully."
@@ -605,6 +609,7 @@ if [ "$ADD_SUDO_RULES" = true ]; then
             info "Stop rule for $service already exists in sudoers file."
         else
             echo "$STOP_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            sudo chmod 0440 /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
                 info "Stop rule for $service added successfully."
