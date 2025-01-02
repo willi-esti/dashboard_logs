@@ -588,8 +588,11 @@ if [ "$ADD_SUDO_RULES" = true ]; then
 
     # Add restart and stop rules for each filtered service
     for service in "${services[@]}"; do
-        RESTART_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /bin/systemctl restart $service"
-        STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /bin/systemctl stop $service"
+        RESTART_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart $service"
+        STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop $service"
+        
+        semanage fcontext -m -t httpd_sys_script_exec_t /usr/bin/systemctl
+        restorecon -v /usr/bin/systemctl
         
         if sudo grep -Fxq "$RESTART_RULE" /etc/sudoers.d/${WEB_USER}-restart; then
             info "Restart rule for $service already exists in sudoers file."
