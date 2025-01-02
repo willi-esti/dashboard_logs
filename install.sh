@@ -171,47 +171,51 @@ configure_selinux() {
 module httpd_systemctl 1.0;
 
 require {
-    type httpd_sys_content_t;
+    #type httpd_sys_content_t;
     type httpd_t;
-    type crond_unit_file_t;
     type httpd_unit_file_t;
+    type crond_unit_file_t;
     type sshd_unit_file_t;
     type syslogd_var_run_t;
     type systemd_unit_file_t;
     type init_t;
     type shadow_t;
     type pam_var_run_t;
-    class service status;
-    class capability sys_resource;
-    class dir { add_name write read };
-    class file { getattr open read create write lock };
-    class file append;
+    class service { status start stop };
+    class system { status start stop };
+    class capability { audit_write sys_resource };
+    class file { create read write getattr open lock append };
+    class dir { read add_name write };
+    class netlink_audit_socket nlmsg_relay;
 }
 
 #============= httpd_t ==============
-allow httpd_t crond_unit_file_t:service status;
-
-#!!!! This avc is allowed in the current policy
-allow httpd_t httpd_unit_file_t:service status;
-allow httpd_t init_t:service status;
-allow httpd_t sshd_unit_file_t:service status;
-allow httpd_t syslogd_var_run_t:dir read;
-
-#!!!! This avc is allowed in the current policy
-allow httpd_t systemd_unit_file_t:service status;
-
-#!!!! This avc can be allowed using the boolean 'httpd_unified'
-allow httpd_t httpd_sys_content_t:file append;
+#!!!! This avc is allowed system access
+allow httpd_t httpd_unit_file_t:service { start status stop };
+allow httpd_t httpd_unit_file_t:system { start status stop };
+allow httpd_t crond_unit_file_t:service { start status stop };
+allow httpd_t crond_unit_file_t:system { start status stop };
+allow httpd_t sshd_unit_file_t:service { start status stop };
+allow httpd_t sshd_unit_file_t:system { start status stop };
+allow httpd_t systemd_unit_file_t:service { start status stop };
+allow httpd_t systemd_unit_file_t:system { start status stop };
+allow httpd_t init_t:service { start status stop };
+allow httpd_t init_t:system { start status stop };
 
 #!!!! This avc can be allowed using sudo
-allow httpd_t pam_var_run_t:dir { add_name write read };
+allow httpd_t self:capability { audit_write sys_resource };
+allow httpd_t shadow_t:file { read getattr open };
+allow httpd_t pam_var_run_t:dir { read add_name write };
 allow httpd_t pam_var_run_t:file { create read getattr open write lock };
-allow httpd_t self:capability sys_resource;
-allow httpd_t shadow_t:file { open read };
-allow httpd_t shadow_t:file getattr;
+allow httpd_t self:netlink_audit_socket nlmsg_relay;
 
-#!!!! This avc can be allowed reading files
-allow httpd_t shadow_t:file read;
+#!!!! This avc can be allowed using systemctl
+allow httpd_t syslogd_var_run_t:dir { read };
+allow httpd_t syslogd_var_run_t:file { read };
+
+#!!!! This avc can be allowed using the boolean 'httpd_unified'
+#allow httpd_t httpd_sys_content_t:file append;
+
 " > /tmp/httpd_systemctl.te
 
             checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te;semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp;semodule -i /tmp/httpd_systemctl.pp
