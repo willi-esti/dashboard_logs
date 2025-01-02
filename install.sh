@@ -412,6 +412,15 @@ if [ "$UNINSTALL" = true ]; then
             setsebool -P httpd_can_network_connect 0
             setsebool -P httpd_can_network_relay 0
         fi
+        if semodule -l | grep httpd_systemctl; then
+            sudo semodule -r httpd_systemctl
+            if semodule -l | grep httpd_systemctl; then
+                error "Failed to remove httpd_systemctl SELinux module."
+                exit 1
+            else
+                info "httpd_systemctl SELinux module removed successfully."
+            fi
+        fi
     fi
 
     info "Uninstallation complete."

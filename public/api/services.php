@@ -39,15 +39,15 @@
         }
 
         if ($action === 'restart') {
-            exec("sudo bash -c '../../system/systemctl.sh restart " . $service . "'", $output, $status);
+            exec("sudo bash ../../system/systemctl.sh restart " . $service, $output, $status);
             //exec("sudo /bin/systemctl restart " . $service, $output, $status);
             jsonResponse(['content' => $output, 'status' => $status]);
         } else if ($action === 'stop') {
-            exec("sudo bash -c '../../system/systemctl.sh stop " . $service . "'", $output, $status);
+            exec("sudo bash ../../system/systemctl.sh stop " . $service, $output, $status);
             //exec("sudo /bin/systemctl stop " . $service, $output, $status);
             jsonResponse(['content' => $output, 'status' => $status]);
         } else if ($action === 'status') {
-            exec("sudo bash -c '../../system/systemctl.sh status " . $service . "'", $output, $status);
+            exec("sudo bash ../../system/systemctl.sh status " . $service, $output, $status);
             //exec("/bin/systemctl status " . $service, $output, $status);
             jsonResponse(['content' => $output]);
         } else {
