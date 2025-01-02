@@ -31,6 +31,10 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 
 // Path to the actions.json file
 $actionsFile = $appDir . '/tmp/actions.json';
+if (!file_exists($actionsFile)) {
+    file_put_contents($actionsFile, json_encode([]));
+    jsonResponse(['error' => 'No actions file'], 200);
+}
 $actionsJson = file_get_contents($actionsFile);
 $actions = json_decode($actionsJson, true);
 
