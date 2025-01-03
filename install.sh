@@ -277,8 +277,8 @@ configure_crond() {
     cp ${APP_DIR}/system/websocket-server-cron /etc/cron.d/websocket-server
 
     # Start and enable crond
-    systemctl start crond
     systemctl enable crond
+    systemctl restart crond
 
     info "Crond configuration complete."
 }
