@@ -274,7 +274,7 @@ configure_crond() {
     sed -i "s|{{APP_DIR}}|${APP_DIR}|g" ${APP_DIR}/system/websocket-server-cron
 
     # Add crontab
-    crontab -u root ${APP_DIR}/system/websocket-server-cron
+    cp ${APP_DIR}/system/websocket-server-cron /etc/cron.d/websocket-server
 
     # Start and enable crond
     systemctl start crond
