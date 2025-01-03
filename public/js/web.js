@@ -50,11 +50,11 @@ function createAlert(message, type = 'success', timer = 5000, goback = true) {
     alertDiv.style.zIndex = '9999';*/
     alertDiv.innerHTML = `
         <strong>${alertName}:</strong> ${message}
-        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this.parentElement)">OK</button>
     `;
     if (goback === true) {
         alertDiv.innerHTML += `
-        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this)">OK</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this.parentElement)">OK</button>
         `;
     }
     alertContainer.appendChild(alertDiv);
@@ -62,19 +62,19 @@ function createAlert(message, type = 'success', timer = 5000, goback = true) {
 
     if (timer !== false) {
         setTimeout(() => {
-            dismissAlert(alertDiv.querySelector('[data-dismiss="alert"]'));
-            alertContainer.removeChild(alertDiv);
+            dismissAlert(alertDiv);
+            //alertContainer.removeChild(alertDiv);
         }, timer);
     }
 }
 //createAlert('Welcome to the dashboard!', 'error');
 
 function dismissAlert(button) {
-    const alertDiv = button.parentElement;
+    const alertDiv = button;
     alertDiv.classList.remove('show');
     alertDiv.classList.add('hide');
     setTimeout(() => {
-        document.body.removeChild(alertDiv);
+        document.getElementById('alert-container').removeChild(alertDiv);
     }, 500); // Wait for the hide transition to complete
 }
 
