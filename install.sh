@@ -567,6 +567,8 @@ if [ "$ADD_SUDO_RULES" = true ]; then
     for service in "${services[@]}"; do
         RESTART_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart $service"
         STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop $service"
+
+        install_packages policycoreutils policycoreutils-python-utils
         
         semanage fcontext -a -t httpd_sys_script_exec_t /usr/bin/systemctl
         restorecon -v /usr/bin/systemctl
