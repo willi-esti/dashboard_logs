@@ -38,9 +38,9 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 function executeCommand($command) {
     $output = null;
     $retval = null;
-    //exec($command, $output, $retval);
-    //return $retval === 0;
-    return true;
+    exec($command, $output, $retval);
+    return $retval === 0;
+    //return true;
 }
 
 // Get the existing report data
