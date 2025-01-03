@@ -11,6 +11,7 @@ usage() {
     echo "  --firewall          Configure firewall, ufw for Debian and firewalld for Red Hat, ports 80, 443"
     echo "  --add-sudo-rules    Add sudo rules for services"
     echo "  --remove-sudo-rules Remove sudo rules for services"
+    echo "  --selinux           Configure SELinux policies for the server dashboard"
     echo "  --uninstall         Uninstall the server dashboard, remove SELinux configuration, and logrotate configuration"
     echo ""
     echo "Example: $0 --install --enable-http --enable-ssl --firewall --add-sudo-rules"
@@ -167,56 +168,7 @@ configure_selinux() {
             restorecon -Rv ${APP_DIR}
 
             # Allow Apache to execute systemctl status
-            echo "
-module httpd_systemctl 1.0;
-
-require {
-    #type httpd_sys_content_t;
-    type httpd_t;
-    type httpd_unit_file_t;
-    type crond_unit_file_t;
-    type sshd_unit_file_t;
-    type syslogd_var_run_t;
-    type systemd_unit_file_t;
-    type init_t;
-    type shadow_t;
-    type pam_var_run_t;
-    class service { status start stop };
-    class system { status start stop };
-    class capability { audit_write sys_resource };
-    class file { create read write getattr open lock append };
-    class dir { read add_name write };
-    class netlink_audit_socket nlmsg_relay;
-}
-
-#============= httpd_t ==============
-#!!!! This avc is allowed system access
-allow httpd_t httpd_unit_file_t:service { start status stop };
-allow httpd_t httpd_unit_file_t:system { start status stop };
-allow httpd_t crond_unit_file_t:service { start status stop };
-allow httpd_t crond_unit_file_t:system { start status stop };
-allow httpd_t sshd_unit_file_t:service { start status stop };
-allow httpd_t sshd_unit_file_t:system { start status stop };
-allow httpd_t systemd_unit_file_t:service { start status stop };
-allow httpd_t systemd_unit_file_t:system { start status stop };
-allow httpd_t init_t:service { start status stop };
-allow httpd_t init_t:system { start status stop };
-
-#!!!! This avc can be allowed using sudo
-allow httpd_t self:capability { audit_write sys_resource };
-allow httpd_t shadow_t:file { read getattr open };
-allow httpd_t pam_var_run_t:dir { read add_name write };
-allow httpd_t pam_var_run_t:file { create read getattr open write lock };
-allow httpd_t self:netlink_audit_socket nlmsg_relay;
-
-#!!!! This avc can be allowed using systemctl
-allow httpd_t syslogd_var_run_t:dir { read };
-allow httpd_t syslogd_var_run_t:file { read };
-
-#!!!! This avc can be allowed using the boolean 'httpd_unified'
-#allow httpd_t httpd_sys_content_t:file append;
-
-" > /tmp/httpd_systemctl.te
+            cat /var/log/audit/audit.log | audit2allow -m httpd_systemctl > /tmp/httpd_systemctl.te
 
             checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te;semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp;semodule -i /tmp/httpd_systemctl.pp
 
@@ -369,6 +321,7 @@ INSTALL=false
 ADD_SUDO_RULES=false
 REMOVE_SUDO_RULES=false
 FIREWALL=false
+SELINUX=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
@@ -377,6 +330,7 @@ while [[ "$#" -gt 0 ]]; do
         --firewall) FIREWALL=true ;;
         --add-sudo-rules) ADD_SUDO_RULES=true ;;
         --remove-sudo-rules) REMOVE_SUDO_RULES=true ;;
+        --selinux) SELINUX=true ;;
         --uninstall) UNINSTALL=true ;;
         *) usage ;;
     esac
@@ -597,8 +551,6 @@ EOF"
 
     configure_log_dirs
 
-    configure_selinux
-
     info "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
         info "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
@@ -657,4 +609,8 @@ if [ "$REMOVE_SUDO_RULES" = true ]; then
     rm -f /etc/sudoers.d/${WEB_USER}-restart
     info "Sudo rules removed successfully."
     exit 0
+fi
+
+if [ "$SELINUX" = true ]; then
+    configure_selinux
 fi
