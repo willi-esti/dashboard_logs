@@ -1,4 +1,4 @@
-//let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
+let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
 //let logFile = 'errors.log'; // Specify the log file to monitor
 let socket;
 let logFile = '';
@@ -121,29 +121,4 @@ function loadingAnimationLog(enable=true, logFile) {
 async function viewLog(logFile) {
     loadingAnimationLog(true, logFile);
     connectWebSocket(logFile);
-}
-
-async function downloadLogFile(fileName) {
-    const response = await fetch(`${API_BASE_URL}/logs/download?file=${fileName}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-    
-    if (!response.ok) {
-        console.error('Failed to download file:', response.statusText);
-        return;
-    }
-
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
 }

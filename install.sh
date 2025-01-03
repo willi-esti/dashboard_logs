@@ -275,6 +275,7 @@ configure_crond() {
 
     # Add crontab
     cp ${APP_DIR}/system/websocket-server-cron /etc/cron.d/websocket-server
+    chmod 644 /etc/cron.d/websocket-server
 
     # Start and enable crond
     systemctl enable crond
@@ -381,7 +382,7 @@ if [ "$UNINSTALL" = true ]; then
     fi
 
     info "Removing crond configuration..."
-    crontab -u root -r
+    rm -f /etc/cron.d/websocket-server
 
     info "Removing logrotate configuration..."
     rm -f /etc/logrotate.d/server-dashboard

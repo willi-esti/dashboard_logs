@@ -82,6 +82,7 @@ async function fetchReports() {
     const reports = await getReports();
     console.log(reports);
     reports.forEach(report => {
+        fetchServices();
         if (report.success) {
             createAlert(report.message, 'success', false, false);
         }

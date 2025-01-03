@@ -51,7 +51,7 @@ Server Dashboard is a web application that allows users to manage server service
 
   Alternatively, you can use the following options:
   ```sh
-  sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]
+  sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules] [--selinux]
   ```
 
   - `--install`: Install the server dashboard and run the websocket-server service. (The project will be in {{APP_DIR}} configured in the .env)
@@ -60,6 +60,7 @@ Server Dashboard is a web application that allows users to manage server service
   - `--uninstall`: Uninstall the server dashboard.
   - `--add-sudo-rules`: Adds sudo rules for specified services in the variable SERVICE of your .env. (File with all the rules: /etc/sudoers.d/www-data-restart)
   - `--remove-sudo-rules`: Removes sudo rules for specified services.
+  - `--selinux`: Enable SELinux mode. When SELinux is on, a cron job will be set up in the install script to manage the restart and stop of services. Which delay the restarts by a few seconds to 1 minute.
 
 4. Make sure the WebSocket server daemon:
   ```sh

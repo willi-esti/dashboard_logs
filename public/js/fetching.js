@@ -178,6 +178,33 @@ async function getReportsDebug() {
     }
 }
 
+// Download log file
+async function downloadLogFile(filePath) {
+    const response = await fetch(`${API_BASE_URL}/logs/download?file=${filePath}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    
+    if (!response.ok) {
+        console.error('Failed to download file:', response.statusText);
+        return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    const splitPath = filePath.split('/');
+    const fileName = splitPath[splitPath.length - 1];
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
 
 // Fetch log content
 async function fetchLogContent(fileName) {
