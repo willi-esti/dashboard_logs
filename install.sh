@@ -551,6 +551,8 @@ EOF"
 
     configure_log_dirs
 
+    configure_selinux
+
     info "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
         info "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
