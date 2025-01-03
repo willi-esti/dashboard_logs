@@ -80,7 +80,6 @@ async function fetchServices() {
 
 async function fetchReports() {
     const reports = await getReports();
-    console.log(reports);
     reports.forEach(report => {
         fetchServices();
         if (report.success) {
@@ -167,7 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('autoRefresh') === 'enabled') {
         intervalSwitch.checked = true;
         startInterval();
-    } else {
+    }
+    else if (intervalSwitch.checked) {
+        startInterval(); // Start the interval if enabled
+    }
+    else {
         intervalSwitch.checked = false;
     }
 
@@ -175,7 +178,4 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchServices();
     fetchLogs();
     setInterval(fetchReports, 10000);
-    if (intervalSwitch.checked) {
-        startInterval(); // Start the interval if enabled
-    }
 });

@@ -42,7 +42,7 @@ async function restartService(serviceName) {
             createAlert('Service restarted successfully!', 'success', 5000, false);
         }
         else if (result.status === 2) {
-            createAlert(result.message, 'info', 5000, false);
+            createAlert(result.message, 'info', false, false);
         }
         else {
             createAlert('Error restarting service.', 'error', 5000, false);
@@ -109,7 +109,7 @@ async function stopService(serviceName) {
             createAlert('Service stopped successfully!', 'success', 5000, false);
         }
         else if (result.status === 2) {
-            createAlert(result.message, 'info', 5000, false);
+            createAlert(result.message, 'info', false, false);
         }
         else {
             createAlert('Error stopping service.', 'error', 5000, false);
