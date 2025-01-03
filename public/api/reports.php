@@ -10,7 +10,12 @@ $dotenv->load();
 $appDir = $_ENV['APP_DIR'];
 
 // Path to the reports.json file
-$reportFile = $appDir . '/tmp/reports.json';
+$tmpDir = $appDir . '/tmp';
+$reportFile = $tmpDir . '/reports.json';
+
+if (!file_exists($tmpDir)) {
+    mkdir($tmpDir);
+}
 
 // Check if the file exists
 if (!file_exists($reportFile)) {
