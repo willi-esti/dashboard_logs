@@ -311,6 +311,26 @@ configure_firewall() {
     info "Firewall configuration complete."
 }
 
+# Function to configure crond
+configure_crond() {
+    info "Configuring crond..."
+
+    # Install crond if not already installed
+    install_packages cronie
+
+    # search and replace APP_DIR in crontab
+    sed -i "s|{{APP_DIR}}|${APP_DIR}|g" ${APP_DIR}/system/websocket-server-cron
+
+    # Add crontab
+    crontab -u root ${APP_DIR}/system/websocket-server-cron
+
+    # Start and enable crond
+    systemctl start crond
+    systemctl enable crond
+
+    info "Crond configuration complete."
+}
+
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
     warning "This script must be run as root."
@@ -405,6 +425,9 @@ if [ "$UNINSTALL" = true ]; then
         firewall-cmd --zone=public --remove-service=https --permanent
         firewall-cmd --reload
     fi
+
+    info "Removing crond configuration..."
+    crontab -u root -r
 
     info "Removing logrotate configuration..."
     rm -f /etc/logrotate.d/server-dashboard
@@ -567,6 +590,8 @@ EOF"
     if [ "$FIREWALL" = true ]; then
         configure_firewall
     fi
+
+    configure_crond
 
     configure_logrotate
 
