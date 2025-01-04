@@ -5,15 +5,18 @@ set -e
 # Function to display usage
 usage() {
     echo "Usage: $0 [--install] [--enable-http] [--enable-ssl] [--firewall] [--add-sudo-rules] [--remove-sudo-rules] [--uninstall]"
-    echo "  --install           Install the server dashboard, SELinux configuration if Enforcing, and logrotate configuration"
+    echo "  --install           Install the server dashboard, run the websocket-server service and necessary packages, enable Apache modules, configure SELinux policies (if Enforcing), configure logrotate, configure crond (if Selinux is Enforcing), and configure firewall."
     echo "  --enable-http       Enable HTTP for the server dashboard"
     echo "  --enable-ssl        Enable SSL for the server dashboard"
     echo "  --firewall          Configure firewall, ufw for Debian and firewalld for Red Hat, ports 80, 443"
-    echo "  --add-sudo-rules    Add sudo rules for services"
+    echo "  --add-sudo-rules    Add sudo rules for services, not used in selinux mode"
     echo "  --remove-sudo-rules Remove sudo rules for services"
-    echo "  --uninstall         Uninstall the server dashboard, remove SELinux configuration, and logrotate configuration"
+    echo "  --selinux           Configure SELinux policies for the server dashboard, a cron job will be used for the restart and stop actions"
+    echo "  --uninstall         Uninstall the server dashboard, remove SELinux configuration, logrotate configuration, cron configuration, and firewall configuration"
     echo ""
-    echo "Example: $0 --install --enable-http --enable-ssl --firewall --add-sudo-rules"
+    echo "Example : $0 --install --enable-http --enable-ssl --firewall --add-sudo-rules"
+    echo "Example (Selinux): $0 --install --enable-http --enable-ssl --firewall --selinux"
+    echo "Example (Uninstall): $0 --uninstall"
     exit 1
 }
 
@@ -55,11 +58,13 @@ detect_os() {
         APACHE_SERVICE="httpd"
         APACHE_SSL_DIR="httpd/ssl"
         WEB_USER="apache"
+        GROUP_SUDO="wheel"
     elif [ -f /etc/debian_version ]; then
         OS="debian"
         APACHE_SERVICE="apache2"
         APACHE_SSL_DIR="apache2/ssl"
         WEB_USER="www-data"
+        GROUP_SUDO="sudo"
     else
         error "Unsupported operating system."
         exit 1
@@ -75,7 +80,11 @@ info() {
 warning() {
     echo -e "\e[33mWARNING: $1\e[0m"
     while true; do
-        read -p "Do you want to continue anyway? (y/n): " choice
+        if [ -z "$2" ]; then
+            read -p "Do you want to continue anyway? (y/n): " choice
+        else
+            read -p "$2 (y/n): " choice
+        fi
         case "$choice" in 
             y|Y ) echo "Continuing..."; break;;
             n|N ) echo "Exiting..."; exit 1;;
@@ -166,56 +175,6 @@ configure_selinux() {
             semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}(/.*)?"
             restorecon -Rv ${APP_DIR}
 
-            # Allow Apache to execute systemctl status
-            echo "
-module httpd_systemctl 1.0;
-
-require {
-    type httpd_sys_content_t;
-    type httpd_t;
-    type crond_unit_file_t;
-    type httpd_unit_file_t;
-    type sshd_unit_file_t;
-    type syslogd_var_run_t;
-    type systemd_unit_file_t;
-    type init_t;
-    type shadow_t;
-    type pam_var_run_t;
-    class service status;
-    class capability sys_resource;
-    class dir { add_name write read };
-    class file { getattr open read create write lock };
-    class file append;
-}
-
-#============= httpd_t ==============
-allow httpd_t crond_unit_file_t:service status;
-
-#!!!! This avc is allowed in the current policy
-allow httpd_t httpd_unit_file_t:service status;
-allow httpd_t init_t:service status;
-allow httpd_t sshd_unit_file_t:service status;
-allow httpd_t syslogd_var_run_t:dir read;
-
-#!!!! This avc is allowed in the current policy
-allow httpd_t systemd_unit_file_t:service status;
-
-#!!!! This avc can be allowed using the boolean 'httpd_unified'
-allow httpd_t httpd_sys_content_t:file append;
-
-#!!!! This avc can be allowed using sudo
-allow httpd_t pam_var_run_t:dir { add_name write read };
-allow httpd_t pam_var_run_t:file { create read getattr open write lock };
-allow httpd_t self:capability sys_resource;
-allow httpd_t shadow_t:file { open read };
-allow httpd_t shadow_t:file getattr;
-
-#!!!! This avc can be allowed reading files
-allow httpd_t shadow_t:file read;
-" > /tmp/httpd_systemctl.te
-
-            checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te;semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp;semodule -i /tmp/httpd_systemctl.pp
-
             # Allow Apache to read and write to the log directories
             IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
             for log_dir in "${log_dirs[@]}"; do
@@ -224,12 +183,22 @@ allow httpd_t shadow_t:file read;
                 restorecon -Rv ${log_dir}
             done
 
+            warning "Please generate some SELinux errors by accessing the server dashboard. All the services will be stopped, just ignore it.\n
+            You can always rerun the script with --selinux flag to fix the SELinux policies." "Press y to continue."
+
+            # Allow Apache to execute systemctl status
+            info "Generating SELinux policies ..."
+            cat /var/log/audit/audit.log  | egrep "apache|denied|status" | audit2allow -m httpd_systemctl > /tmp/httpd_systemctl.te
+            checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te;semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp;semodule -i /tmp/httpd_systemctl.pp
+
             # crutial cause if some workers are still running they won't have access to the new context
-            restart_service php-fpm
+            restart_service php-fpm httpd
 
             restart_service websocket-server
             
             info "SELinux configuration complete."
+    
+            configure_crond
         else
             info "SELinux is disabled."
         fi
@@ -304,6 +273,27 @@ configure_firewall() {
     info "Firewall configuration complete."
 }
 
+# Function to configure crond
+configure_crond() {
+    info "Configuring crond..."
+
+    # Install crond if not already installed
+    install_packages cronie
+
+    # search and replace APP_DIR in crontab
+    sed -i "s|{{APP_DIR}}|${APP_DIR}|g" ${APP_DIR}/system/server-dashboard-cron
+
+    # Add crontab
+    cp ${APP_DIR}/system/server-dashboard-cron /etc/cron.d/server-dashboard
+    chmod 644 /etc/cron.d/server-dashboard
+
+    # Start and enable crond
+    systemctl enable crond
+    systemctl restart crond
+
+    info "Crond configuration complete."
+}
+
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
     warning "This script must be run as root."
@@ -342,6 +332,7 @@ INSTALL=false
 ADD_SUDO_RULES=false
 REMOVE_SUDO_RULES=false
 FIREWALL=false
+SELINUX=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
@@ -350,6 +341,7 @@ while [[ "$#" -gt 0 ]]; do
         --firewall) FIREWALL=true ;;
         --add-sudo-rules) ADD_SUDO_RULES=true ;;
         --remove-sudo-rules) REMOVE_SUDO_RULES=true ;;
+        --selinux) SELINUX=true ;;
         --uninstall) UNINSTALL=true ;;
         *) usage ;;
     esac
@@ -399,6 +391,9 @@ if [ "$UNINSTALL" = true ]; then
         firewall-cmd --reload
     fi
 
+    info "Removing crond configuration..."
+    rm -f /etc/cron.d/server-dashboard
+
     info "Removing logrotate configuration..."
     rm -f /etc/logrotate.d/server-dashboard
 
@@ -407,6 +402,15 @@ if [ "$UNINSTALL" = true ]; then
         if [ "$(getenforce)" != "Disabled" ]; then
             setsebool -P httpd_can_network_connect 0
             setsebool -P httpd_can_network_relay 0
+        fi
+        if semodule -l | grep httpd_systemctl; then
+            sudo semodule -r httpd_systemctl
+            if semodule -l | grep httpd_systemctl; then
+                error "Failed to remove httpd_systemctl SELinux module."
+                exit 1
+            else
+                info "httpd_systemctl SELinux module removed successfully."
+            fi
         fi
     fi
 
@@ -471,7 +475,9 @@ if [ "$INSTALL" = true ]; then
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
     ServerName localhost
-    DocumentRoot ${APP_DIR}/public
+    DocumentRoot /var/www/html
+
+    Alias ${BASE_URL} ${APP_DIR}/public
 
     <Directory ${APP_DIR}/public>
         Options Indexes FollowSymLinks
@@ -480,8 +486,8 @@ if [ "$INSTALL" = true ]; then
     </Directory>
 
     ProxyPreserveHost On
-    ProxyPass /api/logs/stream ws://localhost:8080/
-    ProxyPassReverse /api/logs/stream ws://localhost:8080/
+    ProxyPass ${BASE_URL}/api/logs/stream ws://localhost:8080/
+    ProxyPassReverse ${BASE_URL}/api/logs/stream ws://localhost:8080/
 
     ErrorLog logs/error.log
     CustomLog logs/access.log combined
@@ -518,7 +524,9 @@ EOF"
 <VirtualHost *:443>
     ServerAdmin webmaster@localhost
     ServerName localhost
-    DocumentRoot ${APP_DIR}/public
+    DocumentRoot /var/www/html
+
+    Alias ${BASE_URL} ${APP_DIR}/public
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt
@@ -531,8 +539,8 @@ EOF"
     </Directory>
 
     ProxyPreserveHost On
-    ProxyPass /api/logs/stream ws://localhost:8080/
-    ProxyPassReverse /api/logs/stream ws://localhost:8080/
+    ProxyPass ${BASE_URL}/api/logs/stream ws://localhost:8080/
+    ProxyPassReverse ${BASE_URL}/api/logs/stream ws://localhost:8080/
 
     ErrorLog logs/error.log
     CustomLog logs/access.log combined
@@ -556,7 +564,9 @@ EOF"
 
     configure_log_dirs
 
-    configure_selinux
+    if [ "$SELINUX" = false ]; then
+        configure_selinux
+    fi
 
     info "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
@@ -570,15 +580,24 @@ if [ "$ADD_SUDO_RULES" = true ]; then
     # Convert comma-separated strings to arrays
     IFS=',' read -r -a services <<< "$SERVICES"
 
+    # Adding apache to sudo
+    sudo usermod -aG ${GROUP_SUDO} ${WEB_USER}
+
     # Add restart and stop rules for each filtered service
     for service in "${services[@]}"; do
-        RESTART_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /bin/systemctl restart $service"
-        STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /bin/systemctl stop $service"
+        RESTART_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart $service"
+        STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop $service"
+
+        install_packages policycoreutils policycoreutils-python-utils
         
+        semanage fcontext -a -t httpd_sys_script_exec_t /usr/bin/systemctl
+        restorecon -v /usr/bin/systemctl
+
         if sudo grep -Fxq "$RESTART_RULE" /etc/sudoers.d/${WEB_USER}-restart; then
             info "Restart rule for $service already exists in sudoers file."
         else
             echo "$RESTART_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            sudo chmod 0440 /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
                 info "Restart rule for $service added successfully."
@@ -592,6 +611,7 @@ if [ "$ADD_SUDO_RULES" = true ]; then
             info "Stop rule for $service already exists in sudoers file."
         else
             echo "$STOP_RULE" | sudo tee -a /etc/sudoers.d/${WEB_USER}-restart
+            sudo chmod 0440 /etc/sudoers.d/${WEB_USER}-restart
             sudo visudo -cf /etc/sudoers.d/${WEB_USER}-restart
             if [ $? -eq 0 ]; then
                 info "Stop rule for $service added successfully."
@@ -611,4 +631,8 @@ if [ "$REMOVE_SUDO_RULES" = true ]; then
     rm -f /etc/sudoers.d/${WEB_USER}-restart
     info "Sudo rules removed successfully."
     exit 0
+fi
+
+if [ "$SELINUX" = true ]; then
+    configure_selinux
 fi

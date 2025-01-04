@@ -2,7 +2,6 @@
 function populateServiceList(services) {
     const serviceList = document.getElementById('serviceList');
     serviceList.innerHTML = ''; // Clear existing services
-    console.log(services);
     
     services.forEach(service => {
         const serviceCard = document.createElement('div');
@@ -78,12 +77,34 @@ async function fetchServices() {
     populateServiceList(services);
 }
 
+async function fetchReports() {
+    const reports = await getReports();
+    reports.forEach(report => {
+        fetchServices();
+        if (report.success) {
+            createAlert(report.message, 'success', false, false);
+        }
+        else {
+            createAlert(report.message, 'error', false, false);
+        }
+    });
+}
+
+async function fetchInfo() {
+    const info = await getInfo();
+    if (info.mode === 'selinux') {
+        setInterval(fetchReports, 10000);
+    }
+    if (info.base_url) {
+        base_url = info.base_url;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     let toggleScrollButton = document.getElementById('toggleScrollButton');
     // this tiggoel will disbale white-space: pre-wrap
     toggleScrollButton.addEventListener('click', () => {
-        //console.log(logContent.style.whiteSpace);
         let logContent = document.getElementById('logContentPre');
         if (logContent.style.whiteSpace === 'pre') {
             logContent.style.whiteSpace = 'pre-wrap';
@@ -99,14 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
     codeElements.forEach((element) => {
         // Remove the animation class after the animation ends
         element.addEventListener('animationend', () => {
-            console.log('Animation ended');
             element.classList.remove('code-animation');
         });
     });
     
     document.getElementById('logoutButton').addEventListener('click', async () => {
         localStorage.removeItem('jwt');
-        window.location.href = '/';
+        redirect();
     });
 
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -153,14 +173,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('autoRefresh') === 'enabled') {
         intervalSwitch.checked = true;
         startInterval();
-    } else {
+    }
+    else if (intervalSwitch.checked) {
+        startInterval(); // Start the interval if enabled
+    }
+    else {
         intervalSwitch.checked = false;
     }
 
     // Run initial fetch
+    fetchInfo();
     fetchServices();
     fetchLogs();
-    if (intervalSwitch.checked) {
-        startInterval(); // Start the interval if enabled
-    }
 });
+
+
+function redirectIfUnauthorized() {
+    if (!localStorage.getItem('jwt')) {
+        if (window.location.pathname !== '/') {
+            redirect();
+        }
+    }
+}
+redirectIfUnauthorized();

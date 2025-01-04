@@ -24,24 +24,29 @@ try {
     ob_start();
     
     switch (true) {
-        case preg_match('/^api\/authenticate$/', $requestUri):
+        case preg_match('/api\/authenticate$/', $requestUri):
             require 'authenticate.php';
             break;
-        case preg_match('/^api\/services$/', $requestUri):
+        case preg_match('/api\/services$/', $requestUri):
             verifyToken();
             require 'services.php';
             break;
-        case preg_match('/^api\/logs$/', $requestUri):
+        case preg_match('/api\/reports$/', $requestUri):
+            verifyToken();
+            require 'reports.php';
+            break;
+        case preg_match('/api\/logs$/', $requestUri):
             verifyToken();
             require 'logs.php';
             break;
-        case preg_match('/^api\/logs\/download/', $requestUri):
+        case preg_match('/api\/logs\/download/', $requestUri):
             verifyToken();
             require 'download.php';
             break;
-        /*case preg_match('/^api\/register$/', $requestUri):
-            require 'register.php';
-            break;*/
+        case preg_match('/api\/info$/', $requestUri):
+            verifyToken();
+            jsonResponse(['base_url' => $_ENV['BASE_URL'], 'mode' => $_ENV['MODE']], 200);
+            break;
         default:
             jsonResponse(['error' => 'Endpoint not found'], 404);
     }
