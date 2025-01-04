@@ -19,7 +19,7 @@ async function authenticateUser(username, password) {
                 createAlert('No token found in response!', 'danger', false);
                 throw new Error('No token found in response!');
             }
-            window.location.href = '/dashboard.html';
+            window.location.href = 'dashboard.html';
         } else {
             error = await response.json();
             createAlert(error.message, 'danger', false, false);
