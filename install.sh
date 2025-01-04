@@ -5,16 +5,18 @@ set -e
 # Function to display usage
 usage() {
     echo "Usage: $0 [--install] [--enable-http] [--enable-ssl] [--firewall] [--add-sudo-rules] [--remove-sudo-rules] [--uninstall]"
-    echo "  --install           Install the server dashboard, SELinux configuration if Enforcing, and logrotate configuration"
+    echo "  --install           Install the server dashboard, run the websocket-server service and necessary packages, enable Apache modules, configure SELinux policies (if Enforcing), configure logrotate, configure crond (if Selinux is Enforcing), and configure firewall."
     echo "  --enable-http       Enable HTTP for the server dashboard"
     echo "  --enable-ssl        Enable SSL for the server dashboard"
     echo "  --firewall          Configure firewall, ufw for Debian and firewalld for Red Hat, ports 80, 443"
-    echo "  --add-sudo-rules    Add sudo rules for services"
+    echo "  --add-sudo-rules    Add sudo rules for services, not used in selinux mode"
     echo "  --remove-sudo-rules Remove sudo rules for services"
-    echo "  --selinux           Configure SELinux policies for the server dashboard"
-    echo "  --uninstall         Uninstall the server dashboard, remove SELinux configuration, and logrotate configuration"
+    echo "  --selinux           Configure SELinux policies for the server dashboard, a cron job will be used for the restart and stop actions"
+    echo "  --uninstall         Uninstall the server dashboard, remove SELinux configuration, logrotate configuration, cron configuration, and firewall configuration"
     echo ""
-    echo "Example: $0 --install --enable-http --enable-ssl --firewall --add-sudo-rules"
+    echo "Example : $0 --install --enable-http --enable-ssl --firewall --add-sudo-rules"
+    echo "Example (Selinux): $0 --install --enable-http --enable-ssl --firewall --selinux"
+    echo "Example (Uninstall): $0 --uninstall"
     exit 1
 }
 
@@ -56,11 +58,13 @@ detect_os() {
         APACHE_SERVICE="httpd"
         APACHE_SSL_DIR="httpd/ssl"
         WEB_USER="apache"
+        GROUP_SUDO="wheel"
     elif [ -f /etc/debian_version ]; then
         OS="debian"
         APACHE_SERVICE="apache2"
         APACHE_SSL_DIR="apache2/ssl"
         WEB_USER="www-data"
+        GROUP_SUDO="sudo"
     else
         error "Unsupported operating system."
         exit 1
@@ -167,11 +171,6 @@ configure_selinux() {
             semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}(/.*)?"
             restorecon -Rv ${APP_DIR}
 
-            # Allow Apache to execute systemctl status
-            cat /var/log/audit/audit.log | audit2allow -m httpd_systemctl > /tmp/httpd_systemctl.te
-
-            checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te;semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp;semodule -i /tmp/httpd_systemctl.pp
-
             # Allow Apache to read and write to the log directories
             IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
             for log_dir in "${log_dirs[@]}"; do
@@ -180,8 +179,13 @@ configure_selinux() {
                 restorecon -Rv ${log_dir}
             done
 
-            # Adding apache to sudo
-            sudo usermod -aG wheel apache
+            warning "Please generate some SELinux errors by accessing the server dashboard. All the services will be stopped, just ignore it.\n
+            You can always rerun the script with --selinux flag to fix the SELinux policies. Press y to continue."
+
+            # Allow Apache to execute systemctl status
+            info "Generating SELinux policies ..."
+            cat /var/log/audit/audit.log  | egrep "apache|denied|status" | audit2allow -m httpd_systemctl > /tmp/httpd_systemctl.te
+            checkmodule -M -m -o /tmp/httpd_systemctl.mod /tmp/httpd_systemctl.te;semodule_package -m /tmp/httpd_systemctl.mod -o /tmp/httpd_systemctl.pp;semodule -i /tmp/httpd_systemctl.pp
 
             # crutial cause if some workers are still running they won't have access to the new context
             restart_service php-fpm httpd
@@ -469,6 +473,8 @@ if [ "$INSTALL" = true ]; then
     ServerName localhost
     DocumentRoot ${APP_DIR}/public
 
+    Alias /dashboard ${APP_DIR}/public
+
     <Directory ${APP_DIR}/public>
         Options Indexes FollowSymLinks
         AllowOverride All
@@ -515,6 +521,8 @@ EOF"
     ServerAdmin webmaster@localhost
     ServerName localhost
     DocumentRoot ${APP_DIR}/public
+
+    Alias /dashboard ${APP_DIR}/public
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt
@@ -565,6 +573,9 @@ if [ "$ADD_SUDO_RULES" = true ]; then
 
     # Convert comma-separated strings to arrays
     IFS=',' read -r -a services <<< "$SERVICES"
+
+    # Adding apache to sudo
+    sudo usermod -aG ${GROUP_SUDO} ${WEB_USER}
 
     # Add restart and stop rules for each filtered service
     for service in "${services[@]}"; do
