@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('logoutButton').addEventListener('click', async () => {
         localStorage.removeItem('jwt');
-        redirect('Logged out');
+        redirect();
     });
 
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function redirectIfUnauthorized() {
     if (!localStorage.getItem('jwt')) {
         if (window.location.pathname !== '/') {
-            redirect('No token found');
+            redirect();
         }
     }
 }

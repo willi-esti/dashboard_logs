@@ -11,7 +11,7 @@ function updateToken(response)
     }
 }
 
-function redirect(error) {
+function redirect() {
     console.log("redirect")
     window.location.href = 'index.html'
     //createAlert(error, 'error', false);
