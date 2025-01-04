@@ -90,6 +90,13 @@ async function fetchReports() {
     });
 }
 
+async function fetchInfo() {
+    const info = await getInfo();
+    if (info.mode === 'selinux') {
+        setInterval(fetchReports, 10000);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     let toggleScrollButton = document.getElementById('toggleScrollButton');
@@ -172,9 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Run initial fetch
+    fetchInfo();
     fetchServices();
     fetchLogs();
-    setInterval(fetchReports, 10000);
 });
 
 

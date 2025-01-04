@@ -221,3 +221,20 @@ async function fetchLogContent(fileName) {
         return { content: 'Error fetching log content.' };
     }
 }
+
+async function getInfo() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/info`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            }
+        });
+        updateToken(response);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching info:', error);
+        return [];
+    }
+}
