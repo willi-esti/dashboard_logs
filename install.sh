@@ -281,11 +281,11 @@ configure_crond() {
     install_packages cronie
 
     # search and replace APP_DIR in crontab
-    sed -i "s|{{APP_DIR}}|${APP_DIR}|g" ${APP_DIR}/system/websocket-server-cron
+    sed -i "s|{{APP_DIR}}|${APP_DIR}|g" ${APP_DIR}/system/server-dashboard-cron
 
     # Add crontab
-    cp ${APP_DIR}/system/websocket-server-cron /etc/cron.d/websocket-server
-    chmod 644 /etc/cron.d/websocket-server
+    cp ${APP_DIR}/system/server-dashboard-cron /etc/cron.d/server-dashboard
+    chmod 644 /etc/cron.d/server-dashboard
 
     # Start and enable crond
     systemctl enable crond
@@ -392,7 +392,7 @@ if [ "$UNINSTALL" = true ]; then
     fi
 
     info "Removing crond configuration..."
-    rm -f /etc/cron.d/websocket-server
+    rm -f /etc/cron.d/server-dashboard
 
     info "Removing logrotate configuration..."
     rm -f /etc/logrotate.d/server-dashboard
