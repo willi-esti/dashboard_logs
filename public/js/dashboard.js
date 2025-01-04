@@ -179,3 +179,15 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchLogs();
     setInterval(fetchReports, 10000);
 });
+
+
+function redirectIfUnauthorized() {
+    // with localStorage.getItem('jwt')
+    if (!localStorage.getItem('jwt')) {
+        if (window.location.pathname !== '/') {
+            //console.log(window.location.pathname);
+            redirect('No token found');
+        }
+    }
+}
+redirectIfUnauthorized();

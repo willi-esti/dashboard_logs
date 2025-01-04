@@ -13,7 +13,7 @@ function updateToken(response)
 
 function redirect(error) {
     console.log("redirect")
-    window.location.href = '/';
+    window.location.href = '..';
     createAlert(error, 'error', false);
 }
 
@@ -78,13 +78,3 @@ function dismissAlert(button) {
     }, 500); // Wait for the hide transition to complete
 }
 
-function redirectIfUnauthorized() {
-    // with localStorage.getItem('jwt')
-    if (!localStorage.getItem('jwt')) {
-        if (window.location.pathname !== '/') {
-            //console.log(window.location.pathname);
-            redirect('No token found');
-        }
-    }
-}
-redirectIfUnauthorized();
