@@ -2,7 +2,6 @@
 function populateServiceList(services) {
     const serviceList = document.getElementById('serviceList');
     serviceList.innerHTML = ''; // Clear existing services
-    console.log(services);
     
     services.forEach(service => {
         const serviceCard = document.createElement('div');
@@ -50,10 +49,10 @@ function populateLogFiles(logFiles) {
                                 <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
                                 <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
                             </svg>
-                            <strong>${file}</strong>
+                            <strong>${file.name}</strong> (${(file.size / 1024).toFixed(2)} ${file.size >= 1048576 ? 'M' : 'K'})
                             <div class="mt-2">
-                                <button class="btn btn-primary btn-sm" onclick="downloadLogFile('${key}/${file}')">Download</button>
-                                <button class="btn btn-success btn-sm" data-log="${key}/${file}" data-action="view" onclick="viewLog('${key}/${file}')">View</button>
+                                <button class="btn btn-primary btn-sm" onclick="downloadLogFile('${key}/${file.name}')">Download</button>
+                                <button class="btn btn-success btn-sm" data-log="${key}/${file.name}" data-action="view" onclick="viewLog('${key}/${file.name}')">View</button>
                             </div>
                         </div>
                     </div>
@@ -78,12 +77,34 @@ async function fetchServices() {
     populateServiceList(services);
 }
 
+async function fetchReports() {
+    const reports = await getReports();
+    reports.forEach(report => {
+        fetchServices();
+        if (report.success) {
+            createAlert(report.message, 'success', false, false);
+        }
+        else {
+            createAlert(report.message, 'error', false, false);
+        }
+    });
+}
+
+async function fetchInfo() {
+    const info = await getInfo();
+    if (info.mode === 'selinux') {
+        setInterval(fetchReports, 10000);
+    }
+    if (info.base_url) {
+        base_url = info.base_url;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     let toggleScrollButton = document.getElementById('toggleScrollButton');
     // this tiggoel will disbale white-space: pre-wrap
     toggleScrollButton.addEventListener('click', () => {
-        //console.log(logContent.style.whiteSpace);
         let logContent = document.getElementById('logContentPre');
         if (logContent.style.whiteSpace === 'pre') {
             logContent.style.whiteSpace = 'pre-wrap';
@@ -99,14 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
     codeElements.forEach((element) => {
         // Remove the animation class after the animation ends
         element.addEventListener('animationend', () => {
-            console.log('Animation ended');
             element.classList.remove('code-animation');
         });
     });
     
     document.getElementById('logoutButton').addEventListener('click', async () => {
         localStorage.removeItem('jwt');
-        window.location.href = '/';
+        redirect();
     });
 
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -153,14 +173,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('autoRefresh') === 'enabled') {
         intervalSwitch.checked = true;
         startInterval();
-    } else {
+    }
+    else if (intervalSwitch.checked) {
+        startInterval(); // Start the interval if enabled
+    }
+    else {
         intervalSwitch.checked = false;
     }
 
     // Run initial fetch
+    fetchInfo();
     fetchServices();
     fetchLogs();
-    if (intervalSwitch.checked) {
-        startInterval(); // Start the interval if enabled
-    }
 });
+
+
+function redirectIfUnauthorized() {
+    if (!localStorage.getItem('jwt')) {
+        if (window.location.pathname !== '/') {
+            redirect();
+        }
+    }
+}
+redirectIfUnauthorized();

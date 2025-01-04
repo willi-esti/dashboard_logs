@@ -11,7 +11,7 @@ $LOG_DIR = __DIR__ . '/../../logs';
 
 if (isset($_GET['file'])) {
     $file = $_GET['file'];
-    $filePath = $LOG_DIR . '/' . $file;
+    $filePath = $file;
 
     if (file_exists($filePath)) {
         header('Content-Type: application/octet-stream');

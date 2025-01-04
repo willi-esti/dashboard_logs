@@ -2,7 +2,7 @@
 
 Server Dashboard is a web application that allows users to manage server services and view log files. It provides functionalities to view status, restart and stop services, as well as view and download log files.
 
-![Server Dashboard](server-dashboard-dark.jpeg)
+![Server Dashboard](server-dashboard.jpeg)
 
 ## Features
 
@@ -22,6 +22,10 @@ Server Dashboard is a web application that allows users to manage server service
 
 ## API Endpoints
 
+### Authentification
+
+- `POST /api/authenticate`: Authenticate the user via the Authorization header, Format : Basic user:password (encoded in base64)
+
 ### Service Management
 
 - `GET /api/services`: List all services and their statuses.
@@ -32,6 +36,11 @@ Server Dashboard is a web application that allows users to manage server service
 - `GET /api/logs`: List available log files.
 - `GET /api/logs/download?file=name`: Download a specific log file.
 - `GET /api/logs/stream?token={token}&logFile={filename}`: Stream log content in real-time.
+
+### Reports, only in Selinux mode
+
+- `GET /api/reports` : List the restart and stop actions done and delete them from the json
+- `GET /api/reports?debug=true` : List the restart and stop actions pending and done, without deleting them
 
 ## Installation
 
@@ -51,22 +60,23 @@ Server Dashboard is a web application that allows users to manage server service
 
   Alternatively, you can use the following options:
   ```sh
-  sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules]
+  sudo ./install.sh [--install] [--enable-ssl] [--enable-http] [--uninstall] [--add-sudo-rules] [--remove-sudo-rules] [--selinux]
   ```
 
-  - `--install`: Install the server dashboard and run the websocket-server service. (The project will be in /var/www/html/server-dashboard)
+  - `--install`: Install the server dashboard and run the websocket-server service. Install necessary packages, enable Apache modules, configure SELinux policies (if Enforcing), configure logrotate, configure crond (if Selinux is Enforcing), and configure firewall. (The project will be in {{APP_DIR}} configured in the .env)
   - `--enable-ssl`: Enable SSL and generate self-signed certificates. (The file server-dashboard-ssl.conf will be added to sites-available in the apache conf)
   - `--enable-http`: Set up HTTP configuration. (The file server-dashboard.conf will be added to sites-available in the apache conf)
-  - `--uninstall`: Uninstall the server dashboard.
+  - `--uninstall`: Uninstall the server dashboard, remove SELinux configuration, logrotate configuration, cron configuration, and firewall configuration
   - `--add-sudo-rules`: Adds sudo rules for specified services in the variable SERVICE of your .env. (File with all the rules: /etc/sudoers.d/www-data-restart)
   - `--remove-sudo-rules`: Removes sudo rules for specified services.
+  - `--selinux`: When SELinux is on, a cron job will be set up in the install script to manage the restart and stop of services, which delays the restarts by a few seconds to 1 minute. This SELinux mode will be activated automatically if it's in the Enforcing mode during the `--install`. You can run `--selinux` to regenerate new SELinux policies if you are having issues showing the status of the services.
 
 4. Make sure the WebSocket server daemon:
   ```sh
   sudo systemctl status websocket-server
   ```
 
-5. Access the dashboard from your browser (https://yourserver.ip/)
+5. Access the dashboard from your browser (https://yourserver.ip/dashboard/)
 
 ## Usage
 

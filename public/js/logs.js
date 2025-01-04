@@ -1,4 +1,4 @@
-//let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
+let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
 //let logFile = 'errors.log'; // Specify the log file to monitor
 let socket;
 let logFile = '';
@@ -13,7 +13,11 @@ function connectWebSocket(logFile) {
     }
     domain = window.location.hostname;
     token = localStorage.getItem('jwt');
-    socket = new WebSocket(`wss://${domain}/api/logs/stream?token=${token}&logFile=${encodeURIComponent(logFile)}`);
+    protocol = 'ws';
+    if (window.location.protocol === 'https:') {
+        protocol = 'wss';
+    }
+    socket = new WebSocket(`${protocol}://${domain}${base_url}//api/logs/stream?token=${token}&logFile=${encodeURIComponent(logFile)}`);
 
     socket.onopen = function(event) {
         console.log('WebSocket is connected.');
@@ -26,7 +30,7 @@ function connectWebSocket(logFile) {
 
     socket.onmessage = function(event) {
         loadingAnimationLog(false, logFile);
-        //console.log('Received message:', event.data);
+        
         console.log('Received message:');
         let logData;
         try {
@@ -35,7 +39,6 @@ function connectWebSocket(logFile) {
             console.log('Failed to parse JSON:', error);
             return;
         }
-        //console.log(logData);
 
         if (logData.follow) {
             const logContent = document.getElementById('logContentPre');
@@ -121,29 +124,4 @@ function loadingAnimationLog(enable=true, logFile) {
 async function viewLog(logFile) {
     loadingAnimationLog(true, logFile);
     connectWebSocket(logFile);
-}
-
-async function downloadLogFile(fileName) {
-    const response = await fetch(`${API_BASE_URL}/logs/download?file=${fileName}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-    
-    if (!response.ok) {
-        console.error('Failed to download file:', response.statusText);
-        return;
-    }
-
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
 }

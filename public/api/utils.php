@@ -83,7 +83,7 @@ function logError($message)
     if (!file_exists($logDir)) {
         mkdir($logDir);
     }
-    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $logDir . '/errors.log');
+    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $logDir . '/server-dashboard.log');
 }
 
 function isWhitelistedService($service)
@@ -96,6 +96,22 @@ function isValidAction($action)
 {
     $validActions = ['start', 'stop', 'restart'];
     return in_array($action, $validActions, true);
+}
+
+function isSELinuxActive() {
+    $selinuxStatusFile = '/sys/fs/selinux/enforce';
+
+    // Check if the SELinux status file exists
+    if (file_exists($selinuxStatusFile)) {
+        $status = file_get_contents($selinuxStatusFile);
+        if ($status === false) {
+            logError('Unable to read SELinux status file.');
+            return 0;
+        }
+        return $status;
+    } else {
+        logError('SELinux appears to be disabled or not supported.');
+    }
 }
 
 ?>

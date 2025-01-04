@@ -41,11 +41,12 @@ async function restartService(serviceName) {
             fetchServices();
             createAlert('Service restarted successfully!', 'success', 5000, false);
         }
+        else if (result.status === 2) {
+            createAlert(result.message, 'info', false, false);
+        }
         else {
             createAlert('Error restarting service.', 'error', 5000, false);
         }
-        console.log(result);
-        
     } catch (error) {
         console.error('Error restarting service:', error);
     } finally {
@@ -67,7 +68,6 @@ async function statusService(serviceName) {
         });
         updateToken(response);
         const result = await response.json();
-        console.log(result.status);
         // making a modal to show the status
         const modal = document.getElementById('statusModal');
         const modalBody = document.getElementById('statusModalContent');
@@ -105,10 +105,12 @@ async function stopService(serviceName) {
             fetchServices();
             createAlert('Service stopped successfully!', 'success', 5000, false);
         }
+        else if (result.status === 2) {
+            createAlert(result.message, 'info', false, false);
+        }
         else {
             createAlert('Error stopping service.', 'error', 5000, false);
         }
-        console.log(result);
     } catch (error) {
         console.error('Error stopping service:', error);
     } finally {
@@ -127,12 +129,82 @@ async function getLogFiles() {
             }
         });
         updateToken(response);
+        if (!response.ok) {
+            const data = await response.json();
+            createAlert(data.message, 'error', false);
+            throw new Error(data.message);
+        }
         //const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
         return await response.json();
     } catch (error) {
         console.error('Error fetching log files:', error);
         return [];
     }
+}
+
+async function getReports() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/reports`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            }
+        });
+        updateToken(response);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching report files:', error);
+        return [];
+    }
+}
+
+async function getReportsDebug() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/reports?debug=true`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            }
+        });
+        updateToken(response);
+        // parse the json
+        console.log(await response.json());
+        //return await response.json();
+    }
+    catch (error) {
+        console.error('Error fetching report files:', error);
+        return [];
+    }
+}
+
+// Download log file
+async function downloadLogFile(filePath) {
+    const response = await fetch(`${API_BASE_URL}/logs/download?file=${filePath}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    
+    if (!response.ok) {
+        console.error('Failed to download file:', response.statusText);
+        return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    const splitPath = filePath.split('/');
+    const fileName = splitPath[splitPath.length - 1];
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
 }
 
 // Fetch log content
@@ -152,5 +224,22 @@ async function fetchLogContent(fileName) {
         //console.error('Error fetching log content:', error);
         createAlert('Error fetching log content.', 'error', false);
         return { content: 'Error fetching log content.' };
+    }
+}
+
+async function getInfo() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/info`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            }
+        });
+        updateToken(response);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching info:', error);
+        return [];
     }
 }

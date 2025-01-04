@@ -2,13 +2,13 @@
 Description=WebSocket Server
 
 [Service]
-ExecStart=/usr/bin/php /var/www/html/server-dashboard/system/websocket-server.php /var/www/html/server-dashboard
+ExecStart=/usr/bin/php {{APP_DIR}}/system/websocket-server.php {{APP_DIR}}
 Restart=always
-User=www-data
-Group=www-data
+User={{WEB_USER}}
+Group={{WEB_USER}}
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=PHP_HOME=/usr/local/bin/php
-WorkingDirectory=/var/www/html/server-dashboard/public/api
+WorkingDirectory={{APP_DIR}}/public/api
 
 [Install]
 WantedBy=multi-user.target
