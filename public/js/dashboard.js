@@ -2,7 +2,6 @@
 function populateServiceList(services) {
     const serviceList = document.getElementById('serviceList');
     serviceList.innerHTML = ''; // Clear existing services
-    console.log(services);
     
     services.forEach(service => {
         const serviceCard = document.createElement('div');
@@ -96,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let toggleScrollButton = document.getElementById('toggleScrollButton');
     // this tiggoel will disbale white-space: pre-wrap
     toggleScrollButton.addEventListener('click', () => {
-        //console.log(logContent.style.whiteSpace);
         let logContent = document.getElementById('logContentPre');
         if (logContent.style.whiteSpace === 'pre') {
             logContent.style.whiteSpace = 'pre-wrap';
@@ -112,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     codeElements.forEach((element) => {
         // Remove the animation class after the animation ends
         element.addEventListener('animationend', () => {
-            console.log('Animation ended');
             element.classList.remove('code-animation');
         });
     });
@@ -182,10 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function redirectIfUnauthorized() {
-    // with localStorage.getItem('jwt')
     if (!localStorage.getItem('jwt')) {
         if (window.location.pathname !== '/') {
-            //console.log(window.location.pathname);
             redirect('No token found');
         }
     }

@@ -47,8 +47,6 @@ async function restartService(serviceName) {
         else {
             createAlert('Error restarting service.', 'error', 5000, false);
         }
-        console.log(result);
-        
     } catch (error) {
         console.error('Error restarting service:', error);
     } finally {
@@ -70,7 +68,6 @@ async function statusService(serviceName) {
         });
         updateToken(response);
         const result = await response.json();
-        console.log(result.status);
         // making a modal to show the status
         const modal = document.getElementById('statusModal');
         const modalBody = document.getElementById('statusModalContent');
@@ -114,7 +111,6 @@ async function stopService(serviceName) {
         else {
             createAlert('Error stopping service.', 'error', 5000, false);
         }
-        console.log(result);
     } catch (error) {
         console.error('Error stopping service:', error);
     } finally {
@@ -170,7 +166,7 @@ async function getReportsDebug() {
         updateToken(response);
         // parse the json
         console.log(await response.json());
-        return await response.json();
+        //return await response.json();
     }
     catch (error) {
         console.error('Error fetching report files:', error);

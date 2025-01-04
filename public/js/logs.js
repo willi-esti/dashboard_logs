@@ -26,7 +26,7 @@ function connectWebSocket(logFile) {
 
     socket.onmessage = function(event) {
         loadingAnimationLog(false, logFile);
-        //console.log('Received message:', event.data);
+        
         console.log('Received message:');
         let logData;
         try {
@@ -35,7 +35,6 @@ function connectWebSocket(logFile) {
             console.log('Failed to parse JSON:', error);
             return;
         }
-        //console.log(logData);
 
         if (logData.follow) {
             const logContent = document.getElementById('logContentPre');

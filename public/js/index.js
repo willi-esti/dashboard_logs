@@ -23,7 +23,7 @@ async function authenticateUser(username, password) {
         } else {
             error = await response.json();
             createAlert(error.message, 'danger', false, false);
-            console.log(`Error: ${error.message}`);
+            //console.log(`Error: ${error.message}`);
         }
         return await response;
     } catch (error) {
