@@ -95,6 +95,9 @@ async function fetchInfo() {
     if (info.mode === 'selinux') {
         setInterval(fetchReports, 10000);
     }
+    if (info.base_url) {
+        base_url = info.base_url;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

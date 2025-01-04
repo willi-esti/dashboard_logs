@@ -477,7 +477,7 @@ if [ "$INSTALL" = true ]; then
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias /dashboard ${APP_DIR}/public
+    Alias ${BASE_URL} ${APP_DIR}/public
 
     <Directory ${APP_DIR}/public>
         Options Indexes FollowSymLinks
@@ -526,7 +526,7 @@ EOF"
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias /dashboard ${APP_DIR}/public
+    Alias ${BASE_URL} ${APP_DIR}/public
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt

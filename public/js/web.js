@@ -1,6 +1,7 @@
 // Web.js: Handles DOM interactions and updates dynamically
 
 const API_BASE_URL = 'api';
+let base_url = '/';
 
 function updateToken(response)
 {

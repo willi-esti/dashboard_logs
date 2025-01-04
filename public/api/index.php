@@ -45,7 +45,7 @@ try {
             break;
         case preg_match('/api\/info$/', $requestUri):
             verifyToken();
-            jsonResponse(['mode' => $_ENV['MODE']], 200);
+            jsonResponse(['base_url' => $_ENV['BASE_URL'], 'mode' => $_ENV['MODE']], 200);
             break;
         default:
             jsonResponse(['error' => 'Endpoint not found'], 404);

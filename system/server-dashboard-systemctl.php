@@ -76,7 +76,7 @@ try {
             }
 
             if ($actionExists) {
-                $log->warning("Action $actionType on $service with ID $actionId already reported.");
+                //$log->warning("Action $actionType on $service with ID $actionId already reported.");
                 continue;
             }
 
