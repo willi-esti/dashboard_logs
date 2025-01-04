@@ -13,7 +13,11 @@ function connectWebSocket(logFile) {
     }
     domain = window.location.hostname;
     token = localStorage.getItem('jwt');
-    socket = new WebSocket(`wss://${domain}${base_url}//api/logs/stream?token=${token}&logFile=${encodeURIComponent(logFile)}`);
+    protocol = 'ws';
+    if (window.location.protocol === 'https:') {
+        protocol = 'wss';
+    }
+    socket = new WebSocket(`${protocol}://${domain}${base_url}//api/logs/stream?token=${token}&logFile=${encodeURIComponent(logFile)}`);
 
     socket.onopen = function(event) {
         console.log('WebSocket is connected.');

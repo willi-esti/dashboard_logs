@@ -486,8 +486,8 @@ if [ "$INSTALL" = true ]; then
     </Directory>
 
     ProxyPreserveHost On
-    ProxyPass /api/logs/stream ws://localhost:8080/
-    ProxyPassReverse /api/logs/stream ws://localhost:8080/
+    ProxyPass ${BASE_URL}/api/logs/stream ws://localhost:8080/
+    ProxyPassReverse ${BASE_URL}/api/logs/stream ws://localhost:8080/
 
     ErrorLog logs/error.log
     CustomLog logs/access.log combined
@@ -539,8 +539,8 @@ EOF"
     </Directory>
 
     ProxyPreserveHost On
-    ProxyPass /api/logs/stream ws://localhost:8080/
-    ProxyPassReverse /api/logs/stream ws://localhost:8080/
+    ProxyPass ${BASE_URL}/api/logs/stream ws://localhost:8080/
+    ProxyPassReverse ${BASE_URL}/api/logs/stream ws://localhost:8080/
 
     ErrorLog logs/error.log
     CustomLog logs/access.log combined
