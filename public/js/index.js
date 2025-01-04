@@ -22,11 +22,12 @@ async function authenticateUser(username, password) {
             window.location.href = 'dashboard.html';
         } else {
             error = await response.json();
-            createAlert(error.message, 'danger', false, false);
+            createAlert(error.message, 'danger', 5000, false);
             //console.log(`Error: ${error.message}`);
         }
         return await response;
     } catch (error) {
+        //createAlert(error.message, 'danger', false, false);
         console.error('Error registering user:', error);
         return { success: false, error: error.message };
     }
@@ -38,12 +39,6 @@ document.getElementById('registrationForm').addEventListener('submit', async (ev
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-
-    // Validate input
-    if (username.length < 3 || password.length < 6) {
-        alert('Username must be at least 3 characters and password at least 6 characters.');
-        return;
-    }
 
     // Send data to the server
     const response = await authenticateUser(username, password);

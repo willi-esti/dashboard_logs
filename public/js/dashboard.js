@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('logoutButton').addEventListener('click', async () => {
         localStorage.removeItem('jwt');
-        window.location.href = '/';
+        redirect('Logged out');
     });
 
     const darkModeToggle = document.getElementById('darkModeToggle');

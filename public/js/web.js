@@ -13,8 +13,8 @@ function updateToken(response)
 
 function redirect(error) {
     console.log("redirect")
-    window.location.href = '..';
-    createAlert(error, 'error', false);
+    window.location.href = 'index.html'
+    //createAlert(error, 'error', false);
 }
 
 function loadingAnimation(enable=true, dataType, data, action, text) {
@@ -54,7 +54,7 @@ function createAlert(message, type = 'success', timer = 5000, goback = true) {
     `;
     if (goback === true) {
         alertDiv.innerHTML += `
-        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="dismissAlert(this.parentElement)">OK</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="alert" onclick="window.location.href = 'index.html'">Go Back</button>
         `;
     }
     alertContainer.appendChild(alertDiv);
