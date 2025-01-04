@@ -129,6 +129,11 @@ async function getLogFiles() {
             }
         });
         updateToken(response);
+        if (!response.ok) {
+            const data = await response.json();
+            createAlert(data.message, 'error', false);
+            throw new Error(data.message);
+        }
         //const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
         return await response.json();
     } catch (error) {

@@ -42,12 +42,12 @@ if ($requestMethod === 'GET') {
     }
 
     if ($filePath === null) {
-        jsonResponse(['error' => 'Log file not found', 'file' => $file], 404);
+        jsonResponse(['message' => 'Log file not found', 'file' => $file], 404);
         exit;
     }
 
     if (!is_readable($filePath)) {
-        jsonResponse(['error' => 'Log file is not readable'], 403);
+        jsonResponse(['success' => false, 'message' => 'Log file is not readable :' . $filePath], 403);
         exit;
     }
 
@@ -62,7 +62,7 @@ if ($requestMethod === 'GET') {
         }
         fclose($handle);
     } else {
-        jsonResponse(['error' => 'Failed to open log file'], 500);
+        jsonResponse(['message' => 'Failed to open log file'], 500);
         exit;
     }
 
@@ -70,6 +70,6 @@ if ($requestMethod === 'GET') {
     $fileSize = filesize($filePath);
     jsonResponse(['content' => $logContent, 'size' => $fileSize], 200, false);
 } else {
-    jsonResponse(['error' => 'Method not allowed'], 405);
+    jsonResponse(['message' => 'Method not allowed'], 405);
 }
 ?>
