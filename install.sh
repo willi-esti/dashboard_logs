@@ -189,6 +189,8 @@ configure_selinux() {
             restart_service websocket-server
             
             info "SELinux configuration complete."
+    
+            configure_crond
         else
             info "SELinux is disabled."
         fi
@@ -545,8 +547,6 @@ EOF"
     if [ "$FIREWALL" = true ]; then
         configure_firewall
     fi
-
-    configure_crond
 
     configure_logrotate
 

@@ -98,4 +98,10 @@ function isValidAction($action)
     return in_array($action, $validActions, true);
 }
 
+// if selinux enforcing
+exec("getenforce", $output, $status);
+if ($output[0] === 'Enforcing') {
+    $_ENV['MODE'] = 'selinux';
+}
+
 ?>
