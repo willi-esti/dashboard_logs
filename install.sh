@@ -80,7 +80,7 @@ info() {
 warning() {
     echo -e "\e[33mWARNING: $1\e[0m"
     while true; do
-        if [ -Z "$2" ]; then
+        if [ -z "$2" ]; then
             read -p "Do you want to continue anyway? (y/n): " choice
         else
             read -p "$2 (y/n): " choice

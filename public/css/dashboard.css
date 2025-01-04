@@ -29,8 +29,13 @@
 
 .alert-container
 {
+    max-width: 600px;
     position: fixed;
     bottom: 20px;
     right: 20px;
     z-index: 1000;
+}
+
+.alert {
+    width: max-content;
 }

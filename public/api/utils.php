@@ -98,10 +98,20 @@ function isValidAction($action)
     return in_array($action, $validActions, true);
 }
 
-// if selinux enforcing
-exec("getenforce", $output, $status);
-if ($output[0] === 'Enforcing') {
-    $_ENV['MODE'] = 'selinux';
+function isSELinuxActive() {
+    $selinuxStatusFile = '/sys/fs/selinux/enforce';
+
+    // Check if the SELinux status file exists
+    if (file_exists($selinuxStatusFile)) {
+        $status = file_get_contents($selinuxStatusFile);
+        if ($status === false) {
+            logError('Unable to read SELinux status file.');
+            return 0;
+        }
+        return $status;
+    } else {
+        logError('SELinux appears to be disabled or not supported.');
+    }
 }
 
 ?>
