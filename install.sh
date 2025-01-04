@@ -80,7 +80,11 @@ info() {
 warning() {
     echo -e "\e[33mWARNING: $1\e[0m"
     while true; do
-        read -p "Do you want to continue anyway? (y/n): " choice
+        if [ -Z "$2" ]; then
+            read -p "Do you want to continue anyway? (y/n): " choice
+        else
+            read -p "$2 (y/n): " choice
+        fi
         case "$choice" in 
             y|Y ) echo "Continuing..."; break;;
             n|N ) echo "Exiting..."; exit 1;;
@@ -180,7 +184,7 @@ configure_selinux() {
             done
 
             warning "Please generate some SELinux errors by accessing the server dashboard. All the services will be stopped, just ignore it.\n
-            You can always rerun the script with --selinux flag to fix the SELinux policies. Press y to continue."
+            You can always rerun the script with --selinux flag to fix the SELinux policies." "Press y to continue."
 
             # Allow Apache to execute systemctl status
             info "Generating SELinux policies ..."
@@ -471,7 +475,7 @@ if [ "$INSTALL" = true ]; then
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
     ServerName localhost
-    DocumentRoot ${APP_DIR}/public
+    DocumentRoot /var/www/html
 
     Alias /dashboard ${APP_DIR}/public
 
@@ -520,7 +524,7 @@ EOF"
 <VirtualHost *:443>
     ServerAdmin webmaster@localhost
     ServerName localhost
-    DocumentRoot ${APP_DIR}/public
+    DocumentRoot /var/www/html
 
     Alias /dashboard ${APP_DIR}/public
 
@@ -560,7 +564,9 @@ EOF"
 
     configure_log_dirs
 
-    configure_selinux
+    if [ "$SELINUX" = false ]; then
+        configure_selinux
+    fi
 
     info "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
