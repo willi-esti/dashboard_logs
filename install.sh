@@ -180,7 +180,7 @@ disable_apache_site() {
 # Function to configure SELinux
 configure_selinux() {
     if command -v getenforce &> /dev/null; then
-        if [[ "$(getenforce)" != "Disabled" && "$MODE" = "selinux" ]]; then
+        if [[ "$(getenforce)" != "Disabled" &&   "$MODE" = "selinux" ]]; then
             # Install policycoreutils if not already installed semanage
             install_packages policycoreutils policycoreutils-python-utils
 
@@ -414,11 +414,17 @@ if [ "$UNINSTALL" = true ]; then
 
     info "Removing firewall configuration..."
     if [ "$OS" = "debian" ]; then
-        ufw --force reset
+        if command -v ufw &> /dev/null; then
+            ufw --force delete allow 80
+            ufw --force delete allow 443
+            ufw --force disable
+        fi
     elif [ "$OS" = "redhat" ]; then
-        firewall-cmd --zone=public --remove-service=http --permanent
-        firewall-cmd --zone=public --remove-service=https --permanent
-        firewall-cmd --reload
+        if command -v firewall-cmd &> /dev/null; then
+            firewall-cmd --zone=public --remove-service=http --permanent
+            firewall-cmd --zone=public --remove-service=https --permanent
+            firewall-cmd --reload
+        fi
     fi
 
     info "Removing crond configuration..."
