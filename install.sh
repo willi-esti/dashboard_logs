@@ -559,9 +559,9 @@ if [ "$INSTALL" = true ]; then
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/public
+    Alias ${BASE_URL} ${APP_DIR}/public/
 
-    <Directory ${APP_DIR}/public>
+    <Directory ${APP_DIR}/public/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -596,7 +596,11 @@ EOF"
         install_packages openssl
         enable_apache_module ssl
         mkdir -p /etc/${APACHE_SSL_DIR}
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/${APACHE_SSL_DIR}/apache.key -out /etc/${APACHE_SSL_DIR}/apache.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=your_domain.com"
+        if [ -f /etc/${APACHE_SSL_DIR}/apache.crt ] || [ -f /etc/${APACHE_SSL_DIR}/apache.key ]; then
+            warning "SSL certificates already exist. Skipping certificate generation." 1
+        else
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/${APACHE_SSL_DIR}/apache.key -out /etc/${APACHE_SSL_DIR}/apache.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=your_domain.com"
+        fi
         if [ "$OS" = "debian" ]; then
             CONFIG_PATH="/etc/apache2/sites-available/server-dashboard-ssl.conf"
             LOG_DIR="/var/log/apache2"
@@ -610,13 +614,13 @@ EOF"
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/public
+    Alias ${BASE_URL} ${APP_DIR}/public/
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt
     SSLCertificateKeyFile /etc/${APACHE_SSL_DIR}/apache.key
 
-    <Directory ${APP_DIR}/public>
+    <Directory ${APP_DIR}/public/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -669,8 +673,8 @@ if [ "$ADD_SUDO_RULES" = true ]; then
 
     # Add restart and stop rules for each filtered service
     for service in "${services[@]}"; do
-        RESTART_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart $service"
-        STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop $service"
+        RESTART_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /bin/systemctl restart $service"
+        STOP_RULE="${WEB_USER} ALL=(ALL) NOPASSWD: /bin/systemctl stop $service"
 
         if sudo grep -Fxq "$RESTART_RULE" /etc/sudoers.d/${WEB_USER}-restart; then
             info "Restart rule for $service already exists in sudoers file."

@@ -83,10 +83,10 @@ if ($requestMethod === 'GET') {
         jsonResponse(['status' => 2, 'message' => 'Action logged due to SELinux mode, the cron job will execute the action in a few seconds. You can check the pending actions with getReportsDebug()'], 202);
     }
     else if ($action === 'restart') {
-        exec("bash ../../system/systemctl.sh restart " . $service, $output, $status);
+        exec("sudo /bin/systemctl restart " . $service, $output, $status);
         jsonResponse(['content' => $output, 'status' => $status]);
     } else if ($action === 'stop') {
-        exec("bash ../../system/systemctl.sh stop " . $service, $output, $status);
+        exec("sudo /bin/systemctl stop " . $service, $output, $status);
         jsonResponse(['content' => $output, 'status' => $status]);
     } else {
         jsonResponse(['error' => 'Invalid action'], 400);
