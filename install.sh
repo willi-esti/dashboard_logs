@@ -340,9 +340,16 @@ fi
 # Load environment variables
 source .env
 
-# Verify the .env variables
-info "Verifying environment variables..."
-verify_env
+if [ "$VERIFY_ENV" = true ]; then
+    info "Verifying environment variables..."
+    verify_env
+    info "Environment variables verification complete."
+    exit 0
+else
+    # Verify the .env variables
+    info "Verifying environment variables..."
+    verify_env
+fi
 
 # Detect the operating system
 info "Detecting operating system..."
@@ -661,11 +668,4 @@ fi
 
 if [ "$SELINUX" = true ]; then
     configure_selinux
-fi
-
-if [ "$VERIFY_ENV" = true ]; then
-    info "Verifying environment variables..."
-    verify_env
-    info "Environment variables verification complete."
-    exit 0
 fi
