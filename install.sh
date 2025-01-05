@@ -13,6 +13,7 @@ usage() {
     echo "  --remove-sudo-rules Remove sudo rules for services"
     echo "  --selinux           Configure SELinux policies for the server dashboard, a cron job will be used for the restart and stop actions"
     echo "  --uninstall         Uninstall the server dashboard, remove SELinux configuration, logrotate configuration, cron configuration, and firewall configuration"
+    echo "  --verify-env        Verify the .env file variables"
     echo ""
     echo "Example : $0 --install --enable-http --enable-ssl --firewall --add-sudo-rules"
     echo "Example (Selinux): $0 --install --enable-http --enable-ssl --firewall --selinux"
@@ -27,9 +28,32 @@ verify_env() {
         error "Please make sure you are running the script in the correct directory."
         exit 1
     fi
-
-    if [ -z "$APP_DIR" ] || [ -z "$SERVICES" ] || [ -z "$LOG_DIRS" ]; then
-        error "APP_DIR, SERVICES, and LOG_DIRS are required in the .env file."
+    if [ -z "$APP_DIR" ]; then
+        error "APP_DIR is required in the .env file."
+        exit 1
+    fi
+    if [ -z "$SERVICES" ]; then
+        error "SERVICES is required in the .env file."
+        exit 1
+    fi
+    if [ -z "$LOG_DIRS" ]; then
+        error "LOG_DIRS are required in the .env file."
+        exit 1
+    fi
+    if [ -z "$BASE_URL" ]; then
+        error "BASE_URL is required in the .env file."
+        exit 1
+    fi
+    if [[ ! "$BASE_URL" =~ ^\/.*$ ]]; then
+        error "BASE_URL should start with a slash."
+        exit 1
+    fi
+    if [[ "$BASE_URL" =~ "^.*\/$" ]]; then
+        error "BASE_URL should not end with a slash."
+        exit 1
+    fi
+    if [ -z "$MODE" ]; then
+        error "MODE is required in the .env file."
         exit 1
     fi
     IFS=',' read -r -a services <<< "$SERVICES"
@@ -333,6 +357,7 @@ ADD_SUDO_RULES=false
 REMOVE_SUDO_RULES=false
 FIREWALL=false
 SELINUX=false
+VERIFY_ENV=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
@@ -343,6 +368,7 @@ while [[ "$#" -gt 0 ]]; do
         --remove-sudo-rules) REMOVE_SUDO_RULES=true ;;
         --selinux) SELINUX=true ;;
         --uninstall) UNINSTALL=true ;;
+        --verify-env) VERIFY_ENV=true ;;
         *) usage ;;
     esac
     shift
@@ -635,4 +661,11 @@ fi
 
 if [ "$SELINUX" = true ]; then
     configure_selinux
+fi
+
+if [ "$VERIFY_ENV" = true ]; then
+    info "Verifying environment variables..."
+    verify_env
+    info "Environment variables verification complete."
+    exit 0
 fi
