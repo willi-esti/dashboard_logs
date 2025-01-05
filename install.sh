@@ -382,11 +382,23 @@ if [ "$UNINSTALL" = true ]; then
     info "Uninstalling server dashboard..."
 
     info "Stopping Apache and websocket server..."
-    stop_service ${APACHE_SERVICE}
-    stop_service websocket-server
+    if systemctl is-active --quiet ${APACHE_SERVICE}; then
+        stop_service ${APACHE_SERVICE}
+    else
+        warning "Apache is not running. Nothing to do." 1
+    fi
+    if systemctl is-active --quiet websocket-server; then
+        stop_service websocket-server
+    else
+        warning "Websocket server is not running. Nothing to do." 1
+    fi
 
     info "Disabling websocket server..."
-    disable_service websocket-server
+    if systemctl is-enabled --quiet websocket-server; then
+        disable_service websocket-server
+    else
+        warning "Websocket server is not enabled. Nothing to do." 1
+    fi
 
     info "Removing websocket server service file..."
     rm -f /etc/systemd/system/websocket-server.service
@@ -396,10 +408,18 @@ if [ "$UNINSTALL" = true ]; then
 
     info "Removing Apache configuration for SSL if exists..."
     if [ "$OS" = "debian" ]; then
-        disable_apache_site server-dashboard-ssl
-        rm -f /etc/apache2/sites-available/server-dashboard-ssl.conf
-        disable_apache_site server-dashboard
-        rm -f /etc/apache2/sites-available/server-dashboard.conf
+        if [ -f /etc/apache2/sites-enabled/server-dashboard-ssl.conf ]; then
+            disable_apache_site server-dashboard-ssl
+            rm -f /etc/apache2/sites-available/server-dashboard-ssl.conf
+        else
+            warning "SSL configuration not found." 1
+        fi
+        if [ -f /etc/apache2/sites-enabled/server-dashboard.conf ]; then
+            disable_apache_site server-dashboard
+            rm -f /etc/apache2/sites-available/server-dashboard.conf
+        else
+            warning "HTTP configuration not found." 1
+        fi
     elif [ "$OS" = "redhat" ]; then
         rm -f /etc/httpd/conf.d/server-dashboard.conf
         rm -f /etc/httpd/conf.d/server-dashboard-ssl.conf
@@ -410,7 +430,11 @@ if [ "$UNINSTALL" = true ]; then
     rm -f /etc/sudoers.d/${WEB_USER}-restart
 
     info "Restarting Apache to apply changes..."
-    restart_service ${APACHE_SERVICE}
+    if systemctl is-active --quiet ${APACHE_SERVICE}; then
+        restart_service ${APACHE_SERVICE}
+    else
+        warning "Apache is not running. Nothing to do." 1
+    fi
 
     info "Removing firewall configuration..."
     if [ "$OS" = "debian" ]; then
@@ -418,12 +442,16 @@ if [ "$UNINSTALL" = true ]; then
             ufw --force delete allow 80
             ufw --force delete allow 443
             ufw --force disable
+        else
+            warning "UFW is not installed." 1
         fi
     elif [ "$OS" = "redhat" ]; then
         if command -v firewall-cmd &> /dev/null; then
             firewall-cmd --zone=public --remove-service=http --permanent
             firewall-cmd --zone=public --remove-service=https --permanent
             firewall-cmd --reload
+        else
+            warning "Firewalld is not installed." 1
         fi
     fi
 
@@ -435,7 +463,7 @@ if [ "$UNINSTALL" = true ]; then
 
     info "Removing SELinux configuration..."
     if command -v getenforce &> /dev/null; then
-        if [ "$(getenforce)" != "Disabled" ]; then
+        if [[ "$(getenforce)" != "Disabled" &&  "$MODE" = "selinux" ]]; then
             setsebool -P httpd_can_network_connect 0
             setsebool -P httpd_can_network_relay 0
         fi
@@ -470,11 +498,13 @@ if [ "$INSTALL" = true ]; then
     info "Creating directory for the server dashboard..."
     mkdir -p ${APP_DIR}
 
-    info "Copying files to the server dashboard directory, including hidden files..."
-    shopt -s dotglob
-    cp -r * ${APP_DIR}
+    info "Copying files to the server dashboard directory..."
+    cp -r public ${APP_DIR}
+    cp -r system ${APP_DIR}
+    cp .env ${APP_DIR}
+    cp composer.json ${APP_DIR}
+    cp composer.lock ${APP_DIR}
     mkdir -p ${APP_DIR}/logs
-    shopt -u dotglob
 
     info "Setting the correct permissions..."
     chown -R ${WEB_USER}:${WEB_USER} ${APP_DIR}
