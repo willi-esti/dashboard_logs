@@ -337,24 +337,6 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load environment variables
-source .env
-
-if [ "$VERIFY_ENV" = true ]; then
-    info "Verifying environment variables..."
-    verify_env
-    info "Environment variables verification complete."
-    exit 0
-else
-    # Verify the .env variables
-    info "Verifying environment variables..."
-    verify_env
-fi
-
-# Detect the operating system
-info "Detecting operating system..."
-detect_os
-
 # Parse arguments
 ENABLE_SSL=false
 ENABLE_HTTP=false
@@ -380,6 +362,24 @@ while [[ "$#" -gt 0 ]]; do
     esac
     shift
 done
+
+# Load environment variables
+source .env
+
+if [ "$VERIFY_ENV" = true ]; then
+    info "Verifying environment variables..."
+    verify_env
+    info "Environment variables verification complete."
+    exit 0
+else
+    # Verify the .env variables
+    info "Verifying environment variables..."
+    verify_env
+fi
+
+# Detect the operating system
+info "Detecting operating system..."
+detect_os
 
 if [ "$UNINSTALL" = true ]; then
     info "Uninstalling server dashboard..."
