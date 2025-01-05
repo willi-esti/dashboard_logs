@@ -66,7 +66,7 @@ verify_env() {
     IFS=',' read -r -a log_dirs <<< "$LOG_DIRS"
     for log_dir in "${log_dirs[@]}"; do
         if [ ! -d "$log_dir" ]; then
-            warning "Log directory $log_dir does not exist."
+            warning "Log directory $log_dir does not exist." $1
         fi
         if [[ "$log_dir" =~ "^.*\/$" ]]; then
             error "Log directory $log_dir should end with a slash."
@@ -99,22 +99,21 @@ detect_os() {
 info() {
     echo -e "\e[32mINFO: $1\e[0m"
 }
-
 # Function to display warning messages
 warning() {
     echo -e "\e[33mWARNING: $1\e[0m"
-    while true; do
-        if [ -z "$2" ]; then
+    if [ "$2" = true ]; then
+        echo "Continuing..."
+    else
+        while true; do
             read -p "Do you want to continue anyway? (y/n): " choice
-        else
-            read -p "$2 (y/n): " choice
-        fi
-        case "$choice" in 
-            y|Y ) echo "Continuing..."; break;;
-            n|N ) echo "Exiting..."; exit 1;;
-            * ) echo "Invalid choice. Please enter y or n.";;
-        esac
-    done
+            case "$choice" in 
+                y|Y ) echo "Continuing..."; break;;
+                n|N ) echo "Exiting..."; exit 1;;
+                * ) echo "Invalid choice. Please enter y or n.";;
+            esac
+        done
+    fi
 }
 
 # Function to display error messages
@@ -368,7 +367,7 @@ source .env
 
 if [ "$VERIFY_ENV" = true ]; then
     info "Verifying environment variables..."
-    verify_env
+    verify_env 1
     info "Environment variables verification complete."
     exit 0
 else
