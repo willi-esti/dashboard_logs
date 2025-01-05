@@ -102,9 +102,7 @@ info() {
 # Function to display warning messages
 warning() {
     echo -e "\e[33mWARNING: $1\e[0m"
-    if [ "$2" = true ]; then
-        echo "Continuing..."
-    else
+    if [ "$2" != 1 ]; then
         while true; do
             read -p "Do you want to continue anyway? (y/n): " choice
             case "$choice" in 
