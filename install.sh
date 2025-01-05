@@ -511,7 +511,6 @@ if [ "$INSTALL" = true ]; then
     cp -r system ${APP_DIR}
     cp .env ${APP_DIR}
     cp composer.json ${APP_DIR}
-    cp composer.lock ${APP_DIR}
     mkdir -p ${APP_DIR}/logs
 
     info "Setting the correct permissions..."
