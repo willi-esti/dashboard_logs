@@ -398,10 +398,14 @@ if [ "$UNINSTALL" = true ]; then
     fi
 
     info "Disabling websocket server..."
-    if systemctl is-enabled --quiet websocket-server; then
-        disable_service websocket-server
+    if [ -f /etc/systemd/system/websocket-server.service ]; then
+        if systemctl is-enabled --quiet websocket-server; then
+            disable_service websocket-server
+        else
+            warning "Websocket server is not enabled. Nothing to do." 1
+        fi
     else
-        warning "Websocket server is not enabled. Nothing to do." 1
+        warning "Websocket server service file does not exist. Nothing to do." 1
     fi
 
     info "Removing websocket server service file..."
