@@ -183,7 +183,7 @@ disable_apache_site() {
 # Function to configure SELinux
 configure_selinux() {
     if command -v getenforce &> /dev/null; then
-        if [ "$(getenforce)" != "Disabled" ]; then
+        if [ "$(getenforce)" != "Disabled" && "$MODE" = "selinux" ]; then
             # Install policycoreutils if not already installed semanage
             install_packages policycoreutils policycoreutils-python-utils
 
