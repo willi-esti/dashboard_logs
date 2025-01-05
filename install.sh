@@ -368,6 +368,10 @@ if [ "$VERIFY_ENV" = true ]; then
     verify_env 1
     info "Environment variables verification complete."
     exit 0
+elif [ "$UNINSTALL" = true ]; then
+    # Verify the .env variables
+    info "Verifying environment variables..."
+    verify_env 1
 else
     # Verify the .env variables
     info "Verifying environment variables..."
