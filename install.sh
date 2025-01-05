@@ -83,12 +83,16 @@ detect_os() {
         APACHE_SSL_DIR="httpd/ssl"
         WEB_USER="apache"
         GROUP_SUDO="wheel"
+        CONFIG_PATH="/etc/httpd/conf.d/server-dashboard.conf"
+        LOG_DIR="/var/log/httpd"
     elif [ -f /etc/debian_version ]; then
         OS="debian"
         APACHE_SERVICE="apache2"
         APACHE_SSL_DIR="apache2/ssl"
         WEB_USER="www-data"
         GROUP_SUDO="sudo"
+        CONFIG_PATH="/etc/apache2/sites-available/server-dashboard.conf"
+        LOG_DIR="/var/log/apache2"
     else
         error "Unsupported operating system."
         exit 1
@@ -378,6 +382,15 @@ else
     verify_env
 fi
 
+# Declare global variables
+OS=""
+APACHE_SERVICE=""
+APACHE_SSL_DIR=""
+WEB_USER=""
+GROUP_SUDO=""
+CONFIG_PATH=""
+LOG_DIR=""
+
 # Detect the operating system
 info "Detecting operating system..."
 detect_os
@@ -539,11 +552,7 @@ if [ "$INSTALL" = true ]; then
 
     if [ "$ENABLE_HTTP" = true ]; then
         info "Setting up HTTP configuration..."
-        if [ "$OS" = "debian" ]; then
-            CONFIG_PATH="/etc/apache2/sites-available/server-dashboard.conf"
-        elif [ "$OS" = "redhat" ]; then
-            CONFIG_PATH="/etc/httpd/conf.d/server-dashboard.conf"
-        fi
+
         bash -c "cat <<EOF > $CONFIG_PATH
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
@@ -562,8 +571,8 @@ if [ "$INSTALL" = true ]; then
     ProxyPass ${BASE_URL}/api/logs/stream ws://localhost:8080/
     ProxyPassReverse ${BASE_URL}/api/logs/stream ws://localhost:8080/
 
-    ErrorLog logs/error.log
-    CustomLog logs/access.log combined
+    ErrorLog ${LOG_DIR}/error.log
+    CustomLog ${LOG_DIR}/access.log combined
 
     
 EOF"
@@ -590,8 +599,10 @@ EOF"
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/${APACHE_SSL_DIR}/apache.key -out /etc/${APACHE_SSL_DIR}/apache.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=your_domain.com"
         if [ "$OS" = "debian" ]; then
             CONFIG_PATH="/etc/apache2/sites-available/server-dashboard-ssl.conf"
+            LOG_DIR="/var/log/apache2"
         elif [ "$OS" = "redhat" ]; then
             CONFIG_PATH="/etc/httpd/conf.d/server-dashboard-ssl.conf"
+            LOG_DIR="/var/log/httpd"
         fi
         bash -c "cat <<EOF > $CONFIG_PATH
 <VirtualHost *:443>
@@ -615,8 +626,8 @@ EOF"
     ProxyPass ${BASE_URL}/api/logs/stream ws://localhost:8080/
     ProxyPassReverse ${BASE_URL}/api/logs/stream ws://localhost:8080/
 
-    ErrorLog logs/error.log
-    CustomLog logs/access.log combined
+    ErrorLog ${LOG_DIR}/error.log
+    CustomLog ${LOG_DIR}/access.log combined
 </VirtualHost>
 EOF"
         enable_apache_module proxy
