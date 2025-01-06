@@ -16,12 +16,99 @@
         <h1>Server Dashboard</h1>
         <button id="logoutButton" class="btn btn-primary btn-logout text-uppercase fw-bold">Logout</button>
     </header>
+        <!-- Server Overview -->
+        <section id="serverOverview">
+            <h2>All Servers</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5>Server 1</h5>
+                            <p>Status: <span class="text-success">Online</span></p>
+                            <p>Active Services: 10</p>
+                            <button class="btn btn-primary btn-sm" onclick="loadServerDetails('server1')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5>Server 1</h5>
+                            <p>Status: <span class="text-success">Online</span></p>
+                            <p>Active Services: 10</p>
+                            <button class="btn btn-primary btn-sm" onclick="loadServerDetails('server1')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5>Server 1</h5>
+                            <p>Status: <span class="text-success">Online</span></p>
+                            <p>Active Services: 10</p>
+                            <button class="btn btn-primary btn-sm" onclick="loadServerDetails('server1')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5>Server 1</h5>
+                            <p>Status: <span class="text-success">Online</span></p>
+                            <p>Active Services: 10</p>
+                            <button class="btn btn-primary btn-sm" onclick="loadServerDetails('server1')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Repeat for other servers -->
+            </div>
+        </section>
+    
+        <!-- Server Details -->
+        <section id="serverDetails" class="mt-4">
+            <h2>Server Details</h2>
+            <!-- Tabs -->
+            <ul class="nav nav-tabs" id="serverTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button" role="tab">
+                        Services
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">
+                        Logs
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content mt-3">
+                <div class="tab-pane fade show active" id="services" role="tabpanel">
+                    <!-- Services List -->
+                </div>
+                <div class="tab-pane fade" id="logs" role="tabpanel">
+                    <!-- Logs Viewer -->
+                </div>
+            </div>
+        </section>
+    
     
     
     <section class="dark-mode-toggle-container">
         <div class="form-check form-switch text-end dark-mode-toggle">
             <input class="form-check-input" type="checkbox" id="darkModeToggle">
             <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+        </div>
+    </section>
+
+    <!-- Server Selection Section -->
+    <section class="mb-4">
+        <h2>Select Server</h2>
+        <div class="form-group">
+            <label for="serverSelect" class="form-label">Choose a server:</label>
+            <select id="serverSelect" class="form-select">
+                <option value="server1">Server 1</option>
+                <option value="server2">Server 2</option>
+                <option value="server3">Server 3</option>
+            </select>
         </div>
     </section>
 

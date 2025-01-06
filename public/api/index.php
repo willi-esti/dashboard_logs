@@ -19,6 +19,21 @@ ini_set('error_log', $logDir . '/server-dashboard-php-error.log'); // Specify er
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requestUri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
+// Allow from any origin (use '*' for development or trusted domains in production)
+header("Access-Control-Allow-Origin: *");
+
+// Allow specific methods
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+
+// Allow specific headers
+header("Access-Control-Allow-Headers: Authorization, Content-Type");
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 try {
 
     ob_start();
