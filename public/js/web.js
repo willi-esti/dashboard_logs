@@ -1,7 +1,20 @@
 // Web.js: Handles DOM interactions and updates dynamically
 
+/** Global variables */
+// API
 const API_BASE_URL = 'api';
 let base_url = '/';
+
+// Intervals for fetching data
+let intervalFetchServices;
+let intervalFetchReports;
+
+// Websocket
+let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
+let socket;
+let logFile = '';
+let reconnectInterval = 5000; // Time in milliseconds to wait before attempting to reconnect
+
 
 function updateToken(response)
 {

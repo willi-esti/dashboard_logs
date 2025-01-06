@@ -236,6 +236,11 @@ async function getInfo() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt')
             }
         });
+        if (!response.ok) {
+            const data = await response.json();
+            createAlert(data.message, 'error', false);
+            throw new Error(data.message);
+        }
         updateToken(response);
         return await response.json();
     } catch (error) {

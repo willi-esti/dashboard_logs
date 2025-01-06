@@ -279,6 +279,7 @@ configure_firewall() {
 
     if [ "$OS" = "debian" ]; then
         install_packages ufw
+        ufw allow 22
         ufw allow 80
         if [ "$ENABLE_SSL" = true ]; then
             ufw allow 443
@@ -288,6 +289,7 @@ configure_firewall() {
         install_packages firewalld
         systemctl start firewalld
         systemctl enable firewalld
+        firewall-cmd --zone=public --add-service=ssh --permanent
         firewall-cmd --zone=public --add-service=http --permanent
         if [ "$ENABLE_SSL" = true ]; then
             firewall-cmd --zone=public --add-service=https --permanent
@@ -506,7 +508,7 @@ fi
 if [ "$INSTALL" = true ]; then
     info "Installing necessary packages..."
     if [ "$OS" = "debian" ]; then
-        install_packages apache2 php libapache2-mod-php
+        install_packages apache2 php libapache2-mod-php php-curl
     elif [ "$OS" = "redhat" ]; then
         install_packages httpd php mod_ssl
         systemctl enable ${APACHE_SERVICE}
@@ -559,9 +561,9 @@ if [ "$INSTALL" = true ]; then
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/public
+    Alias ${BASE_URL} ${APP_DIR}/public/
 
-    <Directory ${APP_DIR}/public>
+    <Directory ${APP_DIR}/public/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -610,13 +612,13 @@ EOF"
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/public
+    Alias ${BASE_URL} ${APP_DIR}/public/
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt
     SSLCertificateKeyFile /etc/${APACHE_SSL_DIR}/apache.key
 
-    <Directory ${APP_DIR}/public>
+    <Directory ${APP_DIR}/public/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted

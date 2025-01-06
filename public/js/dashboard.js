@@ -93,11 +93,13 @@ async function fetchReports() {
 async function fetchInfo() {
     const info = await getInfo();
     if (info.mode === 'selinux') {
-        setInterval(fetchReports, 10000);
+        intervalFetchReports = setInterval(fetchReports, 10000);
     }
     if (info.base_url) {
         base_url = info.base_url;
     }
+    fetchServices();
+    fetchLogs();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -149,14 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add interval switch
     const intervalSwitch = document.getElementById('intervalSwitch');
-    let intervalId;
 
     function startInterval() {
-        intervalId = setInterval(fetchServices, 5000);
+        intervalFetchServices = setInterval(fetchServices, 5000);
     }
 
     function stopInterval() {
-        clearInterval(intervalId);
+        clearInterval(intervalFetchServices);
     }
 
     intervalSwitch.addEventListener('change', function() {
@@ -183,8 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Run initial fetch
     fetchInfo();
-    fetchServices();
-    fetchLogs();
 });
 
 
