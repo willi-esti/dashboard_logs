@@ -19,7 +19,7 @@ async function fetchAPI(url, method, body = null, finallyCallback, ...finallyArg
                 localStorage.removeItem('jwt');
                 Object.keys(intervalIds).forEach(key => {
                     clearInterval(intervalIds[key]);
-                }
+                });
                 //redirect();
             }
             createAlert(data.message, 'error', false);
@@ -34,6 +34,10 @@ async function fetchAPI(url, method, body = null, finallyCallback, ...finallyArg
             finallyCallback(...finallyArgs);
         }
     }
+}
+
+async function getInfo() {
+    return await fetchAPI(`${API_BASE_URL}/info`, 'GET');
 }
 
 // Fetch services
@@ -119,6 +123,3 @@ async function downloadLogFile(filePath) {
     document.body.removeChild(a);
 }
 
-async function getInfo() {
-    return await fetchAPI(`${API_BASE_URL}/info`, 'GET');
-}
