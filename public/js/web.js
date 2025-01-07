@@ -6,8 +6,7 @@ const API_BASE_URL = 'api';
 let base_url = '/';
 
 // Intervals for fetching data
-let intervalFetchServices;
-let intervalFetchReports;
+let intervalIds = {};
 
 // Websocket
 let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
@@ -20,7 +19,7 @@ function updateToken(response)
 {
     if (response.headers.has('Authorization')) {
         const newToken = response.headers.get('Authorization').split(' ')[1];
-        console.log("newToken", newToken);
+        console.log('Token refreshed');
         localStorage.setItem('jwt', newToken);
     }
 }

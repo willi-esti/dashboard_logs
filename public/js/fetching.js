@@ -1,182 +1,94 @@
-// Fetch services
-async function getServices() {
+// make a fetch functon
+async function fetchAPI(url, method, body = null, finallyCallback, ...finallyArgs) {
     try {
-        const response = await fetch(`${API_BASE_URL}/services`, {
-            method: 'GET',
+        const options = {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt')
             }
-        });
-
+        };
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+        const response = await fetch(url, options);
+        updateToken(response);
         if (!response.ok) {
             const data = await response.json();
+            if (data.error === 'Unauthorized') {
+                localStorage.removeItem('jwt');
+                Object.keys(intervalIds).forEach(key => {
+                    clearInterval(intervalIds[key]);
+                }
+                //redirect();
+            }
             createAlert(data.message, 'error', false);
             throw new Error(data.message);
         }
-        updateToken(response);
-
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
-        console.error('Error fetching services:', error.message);
+        console.error('Error fetching data:', error);
+        return [];
+    } finally {
+        if (finallyCallback) {
+            finallyCallback(...finallyArgs);
+        }
     }
+}
+
+// Fetch services
+async function getServices() {
+    return await fetchAPI(`${API_BASE_URL}/services`, 'GET');
 }
 
 // Restart a service
 async function restartService(serviceName) {
     loadingAnimation(true, 'service', serviceName, 'restart', 'Restart');
-    try {
-        const response = await fetch(`${API_BASE_URL}/services`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            },
-            body: JSON.stringify({ action: 'restart', service: serviceName })
-        });
-        updateToken(response);
-        const result = await response.json();
-        if (result.status === 0) {
-            fetchServices();
-            createAlert('Service restarted successfully!', 'success', 5000, false);
-        }
-        else if (result.status === 2) {
-            createAlert(result.message, 'info', false, false);
-        }
-        else {
-            createAlert('Error restarting service.', 'error', 5000, false);
-        }
-    } catch (error) {
-        console.error('Error restarting service:', error);
-    } finally {
-        loadingAnimation(false, 'service', serviceName, 'restart', 'Restart');
+    response = await fetchAPI(`${API_BASE_URL}/services`, 'POST', { action: 'restart', service: serviceName }, loadingAnimation, false, 'service', serviceName, 'restart', 'Restart');
+    if (response.status === 0) {
+        fetchServices();
+        createAlert('Service restarted successfully!', 'success', 5000, false);
+    }
+    else if (response.status === 2) {
+        createAlert(response.message, 'info', false, false);
+    }
+    else {
+        createAlert('Error restarting service.', 'error', 5000, false);
     }
 }
 
 // Status of a service
 async function statusService(serviceName) {
     loadingAnimation(true, 'service', serviceName, 'status', 'Status');
-    try {
-        const response = await fetch(`${API_BASE_URL}/services`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            },
-            body: JSON.stringify({ action: 'status', service: serviceName })
-        });
-        updateToken(response);
-        const result = await response.json();
-        // making a modal to show the status
-        const modal = document.getElementById('statusModal');
-        const modalBody = document.getElementById('statusModalContent');
-        modalBody.style.whiteSpace = 'pre';
-        modalBody.innerHTML = '';
-        result.content.forEach(element => {
-            modalBody.innerHTML += `${element}<br>`;
-        });
-        const statusModal = new bootstrap.Modal(modal);
-        statusModal.show();
-        //fetchServices();
-    } catch (error) {
-        console.error('Error checking service status:', error);
-    }
-    finally {
-        loadingAnimation(false, 'service', serviceName, 'status', 'Status');
-    }
+    response = await fetchAPI(`${API_BASE_URL}/services`, 'POST', { action: 'status', service: serviceName }, loadingAnimation, false, 'service', serviceName, 'status', 'Status');
+    // making a modal to show the status
+    const modal = document.getElementById('statusModal');
+    const modalBody = document.getElementById('statusModalContent');
+    modalBody.style.whiteSpace = 'pre';
+    modalBody.innerHTML = '';
+    response.content.forEach(element => {
+        modalBody.innerHTML += `${element}<br>`;
+    });
+    const statusModal = new bootstrap.Modal(modal);
+    statusModal.show();
 }
-
 // Stop a service
 async function stopService(serviceName) {
     loadingAnimation(true, 'service', serviceName, 'stop', 'Stop');
-    try {
-        const response = await fetch(`${API_BASE_URL}/services`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            },
-            body: JSON.stringify({ action: 'stop', service: serviceName })
-        });
-        updateToken(response);
-        const result = await response.json();
-        if (result.status === 0) {
-            fetchServices();
-            createAlert('Service stopped successfully!', 'success', 5000, false);
-        }
-        else if (result.status === 2) {
-            createAlert(result.message, 'info', false, false);
-        }
-        else {
-            createAlert('Error stopping service.', 'error', 5000, false);
-        }
-    } catch (error) {
-        console.error('Error stopping service:', error);
-    } finally {
-        loadingAnimation(false, 'service', serviceName, 'stop', 'Stop');
-    }
+    fetchAPI(`${API_BASE_URL}/services`, 'POST', { action: 'stop', service: serviceName }, loadingAnimation, false, 'service', serviceName, 'stop', 'Stop');
 }
 
 // Fetch log files
 async function getLogFiles() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/logs`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            }
-        });
-        updateToken(response);
-        if (!response.ok) {
-            const data = await response.json();
-            createAlert(data.message, 'error', false);
-            throw new Error(data.message);
-        }
-        //const response = await fetch(`${API_BASE_URL}/logs`, { method: 'GET' });
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching log files:', error);
-        return [];
-    }
+    return await fetchAPI(`${API_BASE_URL}/logs`, 'GET');
 }
 
 async function getReports() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/reports`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            }
-        });
-        updateToken(response);
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching report files:', error);
-        return [];
-    }
+    return await fetchAPI(`${API_BASE_URL}/reports`, 'GET');
 }
 
 async function getReportsDebug() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/reports?debug=true`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            }
-        });
-        updateToken(response);
-        // parse the json
-        console.log(await response.json());
-        //return await response.json();
-    }
-    catch (error) {
-        console.error('Error fetching report files:', error);
-        return [];
-    }
+    return await fetchAPI(`${API_BASE_URL}/reports?debug=true`, 'GET');
 }
 
 // Download log file
@@ -207,44 +119,6 @@ async function downloadLogFile(filePath) {
     document.body.removeChild(a);
 }
 
-// Fetch log content
-async function fetchLogContent(fileName) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/logs`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            },
-            body: JSON.stringify({ file: fileName })
-        });
-        updateToken(response);
-        return await response.json();
-    } catch (error) {
-        //console.error('Error fetching log content:', error);
-        createAlert('Error fetching log content.', 'error', false);
-        return { content: 'Error fetching log content.' };
-    }
-}
-
 async function getInfo() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/info`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-            }
-        });
-        if (!response.ok) {
-            const data = await response.json();
-            createAlert(data.message, 'error', false);
-            throw new Error(data.message);
-        }
-        updateToken(response);
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching info:', error);
-        return [];
-    }
+    return await fetchAPI(`${API_BASE_URL}/info`, 'GET');
 }
