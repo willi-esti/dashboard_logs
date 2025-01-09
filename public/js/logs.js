@@ -50,9 +50,9 @@ function connectWebSocket(logFile) {
         }
         else if (logData.error) {
             createAlert(`[WebSocket] Error: ${logData.error}`, 'error', 5000);
-            if (logData.error === 'Invalid token' || logData.error === 'Unauthorized') {
+            /*if (logData.error === 'Invalid token' || logData.error === 'Unauthorized') {
                 redirect();
-            }
+            }*/
         }
         else {
             console.log('Unknown message:', logData);
