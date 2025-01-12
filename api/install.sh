@@ -278,26 +278,31 @@ configure_firewall() {
     info "Configuring firewall..."
 
     if [ "$OS" = "debian" ]; then
-        install_packages ufw
-        ufw allow 22
-        ufw allow 80
-        if [ "$ENABLE_SSL" = true ]; then
-            ufw allow 443
+        if command -v ufw &> /dev/null; then
+            ufw --force enable
+            ufw --force allow 80
+            if [ "$ENABLE_SSL" = true ]; then
+                ufw --force allow 443
+            fi
+            info "Firewall configuration complete."
+        else
+            warning "UFW is not installed." 1
         fi
-        ufw --force enable
     elif [ "$OS" = "redhat" ]; then
-        install_packages firewalld
-        systemctl start firewalld
-        systemctl enable firewalld
-        firewall-cmd --zone=public --add-service=ssh --permanent
-        firewall-cmd --zone=public --add-service=http --permanent
-        if [ "$ENABLE_SSL" = true ]; then
-            firewall-cmd --zone=public --add-service=https --permanent
+        if command -v firewalld &> /dev/null; then
+            systemctl start firewalld
+            systemctl enable firewalld
+            firewall-cmd --zone=public --add-service=ssh --permanent
+            firewall-cmd --zone=public --add-service=http --permanent
+            if [ "$ENABLE_SSL" = true ]; then
+                firewall-cmd --zone=public --add-service=https --permanent
+            fi
+            firewall-cmd --reload
+            info "Firewall configuration complete."
+        else
+            warning "Firewalld is not installed." 1
         fi
-        firewall-cmd --reload
     fi
-
-    info "Firewall configuration complete."
 }
 
 # Function to configure crond
@@ -353,12 +358,24 @@ VERIFY_ENV=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install) INSTALL=true ;;
-        --enable-http) ENABLE_HTTP=true ;;
-        --enable-ssl) ENABLE_SSL=true ;;
+        --enable-http) 
+            if [ "$INSTALL" != true ]; then
+                error "--enable-http can only be used with --install"
+                usage
+            fi
+            ENABLE_HTTP=true 
+            ;;
+        --enable-ssl) 
+            if [ "$INSTALL" != true ]; then
+                error "--enable-ssl can only be used with --install"
+                usage
+            fi
+            ENABLE_SSL=true 
+            ;;
         --firewall) FIREWALL=true ;;
         --add-sudo-rules) ADD_SUDO_RULES=true ;;
         --remove-sudo-rules) REMOVE_SUDO_RULES=true ;;
-        --selinux) SELINUX=true ;;
+        --selinux) SELINUX_PARAM=true ;;
         --uninstall) UNINSTALL=true ;;
         --verify-env) VERIFY_ENV=true ;;
         *) usage ;;
@@ -374,10 +391,6 @@ if [ "$VERIFY_ENV" = true ]; then
     verify_env 1
     info "Environment variables verification complete."
     exit 0
-elif [ "$UNINSTALL" = true ]; then
-    # Verify the .env variables
-    info "Verifying environment variables..."
-    verify_env 1
 else
     # Verify the .env variables
     info "Verifying environment variables..."
@@ -398,6 +411,10 @@ info "Detecting operating system..."
 detect_os
 
 if [ "$UNINSTALL" = true ]; then
+    # Verify the .env variables
+    info "Verifying environment variables..."
+    verify_env 1
+
     info "Uninstalling server dashboard..."
 
     info "Stopping Apache and websocket server..."
@@ -459,22 +476,24 @@ if [ "$UNINSTALL" = true ]; then
         warning "Apache is not running. Nothing to do." 1
     fi
 
-    info "Removing firewall configuration..."
-    if [ "$OS" = "debian" ]; then
-        if command -v ufw &> /dev/null; then
-            ufw --force delete allow 80
-            ufw --force delete allow 443
-            ufw --force disable
-        else
-            warning "UFW is not installed." 1
-        fi
-    elif [ "$OS" = "redhat" ]; then
-        if command -v firewall-cmd &> /dev/null; then
-            firewall-cmd --zone=public --remove-service=http --permanent
-            firewall-cmd --zone=public --remove-service=https --permanent
-            firewall-cmd --reload
-        else
-            warning "Firewalld is not installed." 1
+    if [ "$FIREWALL" = true ]; then
+        info "Removing firewall configuration..."        
+        if [ "$OS" = "debian" ]; then
+            if command -v ufw &> /dev/null; then
+                ufw --force delete allow 80
+                ufw --force delete allow 443
+                ufw --force disable
+            else
+                warning "UFW is not installed." 1
+            fi
+        elif [ "$OS" = "redhat" ]; then
+            if command -v firewall-cmd &> /dev/null; then
+                firewall-cmd --zone=public --remove-service=http --permanent
+                firewall-cmd --zone=public --remove-service=https --permanent
+                firewall-cmd --reload
+            else
+                warning "Firewalld is not installed." 1
+            fi
         fi
     fi
 
@@ -486,10 +505,6 @@ if [ "$UNINSTALL" = true ]; then
 
     info "Removing SELinux configuration..."
     if command -v getenforce &> /dev/null; then
-        if [[ "$(getenforce)" != "Disabled" &&  "$MODE" = "selinux" ]]; then
-            setsebool -P httpd_can_network_connect 0
-            setsebool -P httpd_can_network_relay 0
-        fi
         if semodule -l | grep httpd_systemctl; then
             sudo semodule -r httpd_systemctl
             if semodule -l | grep httpd_systemctl; then
@@ -522,7 +537,7 @@ if [ "$INSTALL" = true ]; then
     mkdir -p ${APP_DIR}
 
     info "Copying files to the server dashboard directory..."
-    cp -r public ${APP_DIR}
+    cp -r src ${APP_DIR}
     cp -r system ${APP_DIR}
     cp .env ${APP_DIR}
     cp composer.json ${APP_DIR}
@@ -646,22 +661,18 @@ EOF"
     enable_service websocket-server
     start_service websocket-server
 
-    if [ "$FIREWALL" = true ]; then
-        configure_firewall
-    fi
-
     configure_logrotate
 
     configure_log_dirs
-
-    if [ "$SELINUX" = false ]; then
-        configure_selinux
-    fi
 
     info "Installation complete. Please check your server dashboard at http://your_server_ip/server-dashboard"
     if [ "$ENABLE_SSL" = true ]; then
         info "SSL enabled. Access your server dashboard at https://your_domain.com/server-dashboard"
     fi
+fi
+
+if [ "$FIREWALL" = true ]; then
+    configure_firewall
 fi
 
 if [ "$ADD_SUDO_RULES" = true ]; then
