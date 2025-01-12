@@ -592,9 +592,9 @@ if [ "$INSTALL" = true ]; then
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/src/
+    Alias ${BASE_URL} ${APP_DIR}/public/
 
-    <Directory ${APP_DIR}/src/>
+    <Directory ${APP_DIR}/public/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -647,13 +647,13 @@ EOF"
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/src/
+    Alias ${BASE_URL} ${APP_DIR}/public/
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt
     SSLCertificateKeyFile /etc/${APACHE_SSL_DIR}/apache.key
 
-    <Directory ${APP_DIR}/src/>
+    <Directory ${APP_DIR}/public/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
