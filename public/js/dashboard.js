@@ -93,6 +93,9 @@ async function fetchReports() {
 async function fetchInfo() {
     const info = await getInfo();
     console.log(info);
+    if (info.version) {
+        document.getElementById('version').textContent = info.version;
+    }
     if (info.mode === 'selinux') {
         intervalIds.intervalFetchReports = setInterval(fetchReports, 10000);
     }
