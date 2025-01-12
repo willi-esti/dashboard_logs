@@ -33,7 +33,7 @@ function populateLogFiles(logFiles) {
     const logFileList = document.getElementById('logFileList');
     logFileList.innerHTML = ''; // Clear existing logs
     Object.entries(logFiles).forEach(([key, value]) => {
-        console.log(`Key: ${key}`);
+        //console.log(`Key: ${key}`);
         const logPath = document.createElement('div');
         logPath.className = 'mt-4 mb-4';
         logPath.innerHTML = `<strong>PATH : ${key}</strong>`;
@@ -92,12 +92,15 @@ async function fetchReports() {
 
 async function fetchInfo() {
     const info = await getInfo();
+    console.log(info);
     if (info.mode === 'selinux') {
-        setInterval(fetchReports, 10000);
+        intervalIds.intervalFetchReports = setInterval(fetchReports, 10000);
     }
     if (info.base_url) {
         base_url = info.base_url;
     }
+    fetchServices();
+    fetchLogs();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -149,14 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add interval switch
     const intervalSwitch = document.getElementById('intervalSwitch');
-    let intervalId;
 
     function startInterval() {
-        intervalId = setInterval(fetchServices, 5000);
+        intervalIds.intervalFetchServices = setInterval(fetchServices, 5000);
     }
 
     function stopInterval() {
-        clearInterval(intervalId);
+        clearInterval(intervalIds.intervalFetchServices);
     }
 
     intervalSwitch.addEventListener('change', function() {
@@ -183,8 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Run initial fetch
     fetchInfo();
-    fetchServices();
-    fetchLogs();
 });
 
 

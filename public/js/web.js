@@ -1,19 +1,30 @@
 // Web.js: Handles DOM interactions and updates dynamically
 
+/** Global variables */
+// API
 const API_BASE_URL = 'api';
 let base_url = '/';
+
+// Intervals for fetching data
+let intervalIds = {};
+
+// Websocket
+let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
+let socket;
+let logFile = '';
+let reconnectInterval = 5000; // Time in milliseconds to wait before attempting to reconnect
+
 
 function updateToken(response)
 {
     if (response.headers.has('Authorization')) {
         const newToken = response.headers.get('Authorization').split(' ')[1];
-        console.log("newToken", newToken);
+        console.log('Token refreshed');
         localStorage.setItem('jwt', newToken);
     }
 }
 
 function redirect() {
-    console.log("redirect")
     window.location.href = 'index.html'
     //createAlert(error, 'error', false);
 }
@@ -78,4 +89,56 @@ function dismissAlert(button) {
         document.getElementById('alert-container').removeChild(alertDiv);
     }, 500); // Wait for the hide transition to complete
 }
+
+function clearIntervals() {
+    Object.keys(intervalIds).forEach(key => {
+        clearInterval(intervalIds[key]);
+    });
+}
+
+async function fetchAPI(url, method, body = null, finallyCallback, ...finallyArgs) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+            }
+        };
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+        const response = await fetch(url, options);
+        updateToken(response);
+        // if error 500
+        if (response.status === 500) {
+            clearIntervals();
+            createAlert('Internal server error. Check the logs for more information.', 'error', false);
+            throw new Error('Internal server error. Check the logs for more information.');
+        }
+        if (response.status === 401) {
+            localStorage.removeItem('jwt');
+            clearIntervals();
+            if (url !== `${API_BASE_URL}/authenticate`) {
+                createAlert('')
+            }
+            createAlert('Unauthorized. Please login.', 'error', false);
+            throw new Error('Unauthorized. Please login.');
+        }
+        if (!response.ok) {
+            const data = await response.json();
+            createAlert(data.message, 'error', false);
+            throw new Error(data.message);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        return [];
+    } finally {
+        if (finallyCallback) {
+            finallyCallback(...finallyArgs);
+        }
+    }
+}
+
 

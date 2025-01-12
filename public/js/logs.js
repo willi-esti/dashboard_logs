@@ -1,9 +1,3 @@
-let token = localStorage.getItem('jwt'); // Retrieve the JWT token from local storage
-//let logFile = 'errors.log'; // Specify the log file to monitor
-let socket;
-let logFile = '';
-let reconnectInterval = 5000; // Time in milliseconds to wait before attempting to reconnect
-
 function connectWebSocket(logFile) {
     try {
         socket.close();
@@ -56,9 +50,9 @@ function connectWebSocket(logFile) {
         }
         else if (logData.error) {
             createAlert(`[WebSocket] Error: ${logData.error}`, 'error', 5000);
-            if (logData.error === 'Invalid token' || logData.error === 'Unauthorized') {
+            /*if (logData.error === 'Invalid token' || logData.error === 'Unauthorized') {
                 redirect();
-            }
+            }*/
         }
         else {
             console.log('Unknown message:', logData);
