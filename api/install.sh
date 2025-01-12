@@ -237,10 +237,10 @@ configure_selinux() {
     
             configure_crond
         else
-            info "SELinux is disabled."
+            info "Set SELINUX=true in the .env file to configure SELinux policies."
         fi
     else
-        info "Set SELINUX=true in the .env file to configure SELinux policies."
+        info "SELinux is not installed."
     fi
 }
 
