@@ -4,7 +4,6 @@ require __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/utils.php';
 use Firebase\JWT\JWT;
 
-
 function authenticate()
 {
     $headers = getallheaders();
