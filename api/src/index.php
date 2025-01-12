@@ -60,7 +60,15 @@ try {
             break;
         case preg_match('/api\/info$/', $requestUri):
             verifyToken();
-            jsonResponse(['version' => $_ENV['VERSION'], 'base_url' => $_ENV['BASE_URL'], 'mode' => $_ENV['MODE']], 200);
+            if (isSELinuxActive() && $_ENV['SELINUX'] !== 'true') {
+                jsonResponse(['error' => 'SELinux is active, set the SELINUX environment variable to true and rerun the installation script with --selinux.'], 500);
+            }
+            jsonResponse([
+                'version' => $_ENV['VERSION'],
+                'server_id' => $_ENV['SERVER_ID'],
+                'base_url' => $_ENV['BASE_URL'],
+                'selinux' => $_ENV['SELINUX'] === 'true' ? true : false
+            ], 200);
             break;
         default:
             jsonResponse(['error' => 'Endpoint not found'], 404);

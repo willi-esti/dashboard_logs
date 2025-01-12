@@ -110,7 +110,7 @@ function isSELinuxActive() {
         }
         return $status;
     } else {
-        logError('SELinux appears to be disabled or not supported.');
+       return 0;
     }
 }
 

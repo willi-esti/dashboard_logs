@@ -43,7 +43,7 @@ if ($requestMethod === 'GET') {
     if ($action === 'status') {
         exec("/bin/systemctl status " . $service, $output, $status);
         jsonResponse(['content' => $output]);
-    } else if ($_ENV['MODE'] === 'selinux') {
+    } else if ($_ENV['SELINUX'] === 'true') {
         $tmpDir = __DIR__ . '/../../tmp';
         if (!file_exists($tmpDir)) {
             mkdir($tmpDir);

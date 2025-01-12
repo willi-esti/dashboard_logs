@@ -96,7 +96,7 @@ async function fetchInfo() {
     if (info.version) {
         document.getElementById('version').textContent = info.version;
     }
-    if (info.mode === 'selinux') {
+    if (info.selinux) {
         intervalIds.intervalFetchReports = setInterval(fetchReports, 10000);
     }
     if (info.base_url) {
