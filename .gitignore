@@ -1,4 +1,5 @@
 .env
+dashboard.db
 vendor
 composer.lock
 logs/*

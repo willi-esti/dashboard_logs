@@ -291,10 +291,14 @@ configure_firewall() {
 
     if [ "$OS" = "debian" ]; then
         if command -v ufw &> /dev/null; then
-            ufw --force enable
-            ufw --force allow 80
+            if ! ufw status | grep -q "Status: active"; then
+                ufw enable
+            else
+                info "UFW is already enabled."
+            fi
+            ufw allow 80
             if [ "$ENABLE_SSL" = true ]; then
-                ufw --force allow 443
+                ufw allow 443
             fi
             info "Firewall configuration complete."
         else
