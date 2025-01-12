@@ -23,8 +23,8 @@ usage() {
 
 # Function to verify the .env variables
 verify_env() {
-    if [ ! -d public ] || [ ! -f composer.json ]; then
-        error "public folder or composer.json file is missing."
+    if [ ! -d src ] || [ ! -f composer.json ]; then
+        error "src folder or composer.json file is missing."
         error "Please make sure you are running the script in the correct directory."
         exit 1
     fi
@@ -576,9 +576,9 @@ if [ "$INSTALL" = true ]; then
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/public/
+    Alias ${BASE_URL} ${APP_DIR}/src/
 
-    <Directory ${APP_DIR}/public/>
+    <Directory ${APP_DIR}/src/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -631,13 +631,13 @@ EOF"
     ServerName localhost
     DocumentRoot /var/www/html
 
-    Alias ${BASE_URL} ${APP_DIR}/public/
+    Alias ${BASE_URL} ${APP_DIR}/src/
 
     SSLEngine on
     SSLCertificateFile /etc/${APACHE_SSL_DIR}/apache.crt
     SSLCertificateKeyFile /etc/${APACHE_SSL_DIR}/apache.key
 
-    <Directory ${APP_DIR}/public/>
+    <Directory ${APP_DIR}/src/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
