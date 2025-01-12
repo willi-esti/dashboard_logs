@@ -1,4 +1,62 @@
+function getServerStatus(server) {
+    if (server.ssl == 1) {
+        server.url = `https://${server.ip}`;
+    } else {
+        server.url = `http://${server.ip}`;
+    }
+    if (server.port) {
+        server.url += `:${server.port}`;
+    }
+    server.url += '/' + server.base_url;
+    // TODO : check if the server is online
+    fetch(`${server.url}/api/authenticate`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${server.token}`
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            server.status = '1';
+            // get token from response
+            console.log(response);
+            response.json().then(data => {
+                server.token = data.token;
+            });
+        }
+        else {
+            server.status = '0';
+        }
+    })
+    .catch(error => {
+        console.error('Failed to fetch server status:', error);
+        server.status = '0';
+    });
+}
+
+
 // Populate service list
+function populateServers(servers) {
+    const serverList = document.getElementById('serverList');
+    serverList.innerHTML = ''; // Clear existing servers
+    servers.forEach(server => {
+        getServerStatus(server);
+        const serverCard = document.createElement('div');
+        serverCard.className = 'col-md-4';
+        serverCard.innerHTML = `
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>${server.name}</h5>
+                    <p>Status: <span class="text-${server.status == '1' ? 'success' : 'danger'}">${server.status == '1' ? 'Online' : 'Offline'}</span></p>
+                    <p>Active Services: ${server.active_services}</p>
+                    <button class="btn btn-primary btn-sm" onclick="loadServerDetails('${server.name}')">View Details</button>
+                </div>
+            </div>
+        `;
+        serverList.appendChild(serverCard);
+    });
+}
+
 function populateServiceList(services) {
     const serviceList = document.getElementById('serviceList');
     serviceList.innerHTML = ''; // Clear existing services
@@ -65,6 +123,10 @@ function populateLogFiles(logFiles) {
     
 }
 
+async function fetchServers() {
+    const servers = await getServers();
+    populateServers(servers);
+}
 
 async function fetchLogs() {
     const logFiles = await getLogFiles();
@@ -96,14 +158,12 @@ async function fetchInfo() {
     if (info.version) {
         document.getElementById('version').textContent = info.version;
     }
-    if (info.selinux) {
-        intervalIds.intervalFetchReports = setInterval(fetchReports, 10000);
-    }
     if (info.base_url) {
         base_url = info.base_url;
     }
-    fetchServices();
-    fetchLogs();
+    fetchServers();
+    //fetchServices();
+    //fetchLogs();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -164,6 +224,20 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(intervalIds.intervalFetchServices);
     }
 
+    // Check if auto-refresh was previously enabled
+    console.log(localStorage.getItem('autoRefresh'));
+    if (localStorage.getItem('autoRefresh') === 'enabled') {
+        intervalSwitch.checked = true;
+        startInterval();
+    }
+    else if (intervalSwitch.checked) {
+        intervalSwitch.checked = false;
+        stopInterval();
+    }
+    else {
+        intervalSwitch.checked = false;
+    }
+
     intervalSwitch.addEventListener('change', function() {
         if (this.checked) {
             startInterval();
@@ -173,18 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('autoRefresh', 'disabled');
         }
     });
-
-    // Check if auto-refresh was previously enabled
-    if (localStorage.getItem('autoRefresh') === 'enabled') {
-        intervalSwitch.checked = true;
-        startInterval();
-    }
-    else if (intervalSwitch.checked) {
-        startInterval(); // Start the interval if enabled
-    }
-    else {
-        intervalSwitch.checked = false;
-    }
 
     // Run initial fetch
     fetchInfo();

@@ -1,5 +1,11 @@
+// Fetch info
 async function getInfo() {
     return await fetchAPI(`${API_BASE_URL}/info`, 'GET');
+}
+
+// Fetch servers
+async function getServers() {
+    return await fetchAPI(`${API_BASE_URL}/servers`, 'GET');
 }
 
 // Fetch services
