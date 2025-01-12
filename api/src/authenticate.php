@@ -19,6 +19,7 @@ function authenticate()
     $token = $authHeader[1];    
     
     try {
+        // curl -X POST http://localhost:8000/api/auth -H "Authorization BDfsdP5d575xd4xsdpBr9eD1XWe5"
         $token_api = $_ENV['TOKEN_API'];
         if (empty($token_api)) {
             jsonResponse(['error' => 'Unauthorized', 'message' => 'Token API is not set'], 401);

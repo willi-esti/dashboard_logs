@@ -1,3 +1,7 @@
+# CURL
+```
+curl -kv -H "Authorization: Bearer BDfsdP5d575xd4xsdpBr9eD1XWe5" -X GET https://192.168.56.103/dashboard/api/authenticate
+```
 
 # Rights
 

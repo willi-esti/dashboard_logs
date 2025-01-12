@@ -4,10 +4,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
-
-$LOG_DIR = __DIR__ . '/../../logs';
 
 function genToken($username)
 {
@@ -78,12 +76,11 @@ function jsonResponse($data, $status = 200, $log = true)
 
 function logError($message)
 {
-    // create logs directory if it doesn't exist
-    $logDir = __DIR__ . '/../../logs';
-    if (!file_exists($logDir)) {
-        mkdir($logDir);
+    $LOG_DIR = $_ENV['LOG_DIR'];
+    if (!file_exists($LOG_DIR)) {
+        mkdir($LOG_DIR);
     }
-    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $logDir . '/server-dashboard.log');
+    error_log("[" . date('Y-m-d H:i:s') . "] $message\n", 3, $LOG_DIR . '/server-dashboard.log');
 }
 
 function isWhitelistedService($service)

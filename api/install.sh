@@ -196,7 +196,7 @@ disable_apache_site() {
 # Function to configure SELinux
 configure_selinux() {
     if command -v getenforce &> /dev/null; then
-        if [[ "$(getenforce)" != "Disabled" &&   "$MODE" = "selinux" ]]; then
+        if [[ "$SELINUX" = "true" ]]; then
             # Install policycoreutils if not already installed semanage
             install_packages policycoreutils policycoreutils-python-utils
 
@@ -240,7 +240,7 @@ configure_selinux() {
             info "SELinux is disabled."
         fi
     else
-        info "SELinux is not installed."
+        info "Set SELINUX=true in the .env file to configure SELinux policies."
     fi
 }
 
@@ -741,6 +741,6 @@ if [ "$REMOVE_SUDO_RULES" = true ]; then
     exit 0
 fi
 
-if [ "$SELINUX" = true ]; then
+if [ "$SELINUX_PARAM" = true ]; then
     configure_selinux
 fi

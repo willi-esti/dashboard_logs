@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/utils.php';
 
+$LOG_DIR = $_ENV['LOG_DIR'];
 if (!file_exists($LOG_DIR)) {
     mkdir($LOG_DIR);
 }
