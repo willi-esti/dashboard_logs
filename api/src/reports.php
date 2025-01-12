@@ -1,11 +1,5 @@
 <?php
 
-require_once __DIR__ . '/utils.php';
-
-// Load .env file
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
-$dotenv->load();
-
 // Get the APP_DIR from .env
 $appDir = $_ENV['APP_DIR'];
 

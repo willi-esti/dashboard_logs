@@ -1,11 +1,5 @@
 <?php
 
-require_once __DIR__ . '/utils.php';
-
-// env
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
-$dotenv->load();
-
 if ($requestMethod === 'GET') {
     $services = array_merge(
         !empty($_ENV['SERVICES']) ? explode(',', $_ENV['SERVICES']) : [],

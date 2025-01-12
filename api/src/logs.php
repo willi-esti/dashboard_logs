@@ -1,9 +1,5 @@
 <?php
 
-// env
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
-$dotenv->load();
-
 $logDirs = explode(',', $_ENV['LOG_DIRS']);
 
 if ($requestMethod === 'GET') {
