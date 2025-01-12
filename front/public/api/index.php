@@ -7,10 +7,11 @@ if (!file_exists($LOG_DIR)) {
     mkdir($LOG_DIR);
 }
 // error
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// don't show errors on the frontend
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 //error_reporting(E_ALL); // Report all errors
-ini_set('log_errors', 1); // Enable error logging
+ini_set('log_errors', 0); // Enable error logging
 ini_set('error_log', $LOG_DIR . '/server-dashboard-php-error.log'); // Specify error log file
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];

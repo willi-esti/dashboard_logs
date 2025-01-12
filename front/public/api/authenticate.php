@@ -23,6 +23,7 @@ function authenticate()
 
     try {
         // $PDO dslite
+        echo $_ENV['DB_PATH'];
         $dsn = 'sqlite:' . $_ENV['DB_PATH'];
         $PDO = new PDO($dsn);
         $PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -37,6 +38,7 @@ function authenticate()
             genNewToken($username);
         }
     } catch (PDOException $e) {
+        logError($e->getMessage());
         jsonResponse(['error' => 'Authentication failed'], 500);
     }
 }

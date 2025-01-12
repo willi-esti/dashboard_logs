@@ -2,8 +2,7 @@
 dashboard.db
 vendor
 composer.lock
-logs/*
-log
+logs
 tmp
 
 

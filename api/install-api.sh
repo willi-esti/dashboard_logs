@@ -95,7 +95,7 @@ detect_os() {
         APACHE_SSL_DIR="httpd/ssl"
         WEB_USER="apache"
         GROUP_SUDO="wheel"
-        CONFIG_PATH="/etc/httpd/conf.d/server-dashboard.conf"
+        CONFIG_PATH="/etc/httpd/conf.d/server-dashboard-api.conf"
         LOG_DIR="/var/log/httpd"
     elif [ -f /etc/debian_version ]; then
         OS="debian"
@@ -103,7 +103,7 @@ detect_os() {
         APACHE_SSL_DIR="apache2/ssl"
         WEB_USER="www-data"
         GROUP_SUDO="sudo"
-        CONFIG_PATH="/etc/apache2/sites-available/server-dashboard.conf"
+        CONFIG_PATH="/etc/apache2/sites-available/server-dashboard-api.conf"
         LOG_DIR="/var/log/apache2"
     else
         error "Unsupported operating system."
@@ -464,21 +464,21 @@ if [ "$UNINSTALL" = true ]; then
 
     info "Removing Apache configuration for SSL if exists..."
     if [ "$OS" = "debian" ]; then
-        if [ -f /etc/apache2/sites-enabled/server-dashboard-ssl.conf ]; then
+        if [ -f /etc/apache2/sites-enabled/server-dashboard-api-ssl.conf ]; then
             disable_apache_site server-dashboard-ssl
-            rm -f /etc/apache2/sites-available/server-dashboard-ssl.conf
+            rm -f /etc/apache2/sites-available/server-dashboard-api-ssl.conf
         else
             warning "SSL configuration not found." 1
         fi
-        if [ -f /etc/apache2/sites-enabled/server-dashboard.conf ]; then
+        if [ -f /etc/apache2/sites-enabled/server-dashboard-api.conf ]; then
             disable_apache_site server-dashboard
-            rm -f /etc/apache2/sites-available/server-dashboard.conf
+            rm -f /etc/apache2/sites-available/server-dashboard-api.conf
         else
             warning "HTTP configuration not found." 1
         fi
     elif [ "$OS" = "redhat" ]; then
-        rm -f /etc/httpd/conf.d/server-dashboard.conf
-        rm -f /etc/httpd/conf.d/server-dashboard-ssl.conf
+        rm -f /etc/httpd/conf.d/server-dashboard-api.conf
+        rm -f /etc/httpd/conf.d/server-dashboard-api-ssl.conf
     fi
     rm -f /etc/${APACHE_SSL_DIR}/apache.crt /etc/${APACHE_SSL_DIR}/apache.key
 
@@ -635,10 +635,10 @@ EOF"
             openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/${APACHE_SSL_DIR}/apache.key -out /etc/${APACHE_SSL_DIR}/apache.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=your_domain.com"
         fi
         if [ "$OS" = "debian" ]; then
-            CONFIG_PATH="/etc/apache2/sites-available/server-dashboard-ssl.conf"
+            CONFIG_PATH="/etc/apache2/sites-available/server-dashboard-api-ssl.conf"
             LOG_DIR="/var/log/apache2"
         elif [ "$OS" = "redhat" ]; then
-            CONFIG_PATH="/etc/httpd/conf.d/server-dashboard-ssl.conf"
+            CONFIG_PATH="/etc/httpd/conf.d/server-dashboard-api-ssl.conf"
             LOG_DIR="/var/log/httpd"
         fi
         bash -c "cat <<EOF > $CONFIG_PATH
