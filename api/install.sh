@@ -28,6 +28,14 @@ verify_env() {
         error "Please make sure you are running the script in the correct directory."
         exit 1
     fi
+    if [ -z "$VERSION" ]; then
+        error "VERSION is required in the .env file."
+        exit 1
+    fi
+    if [ -z "$SERVER_ID" ]; then
+        error "SERVER_ID is required in the .env file."
+        exit 1
+    fi
     if [ -z "$APP_DIR" ]; then
         error "APP_DIR is required in the .env file."
         exit 1
@@ -52,8 +60,12 @@ verify_env() {
         error "BASE_URL should not end with a slash."
         exit 1
     fi
-    if [ -z "$MODE" ]; then
-        error "MODE is required in the .env file."
+    if [ -z "$TOKEN_API" ]; then
+        error "TOKEN_API is required in the .env file."
+        exit 1
+    fi
+    if [ -z "$SELINUX" ]; then
+        error "SELINUX is required in the .env file."
         exit 1
     fi
     IFS=',' read -r -a services <<< "$SERVICES"
