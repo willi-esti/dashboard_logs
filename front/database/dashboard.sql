@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS servers (
     ssl BOOLEAN NOT NULL DEFAULT 0,
     ip TEXT NOT NULL,
     port INTEGER NULL,
-    base_url TEXT NOT NULL,
+    path TEXT NOT NULL,
     token TEXT NOT NULL
 );
 
@@ -21,5 +21,5 @@ CREATE TABLE IF NOT EXISTS servers (
 INSERT or IGNORE INTO users (id, username, password) VALUES (1, 'admin', '$2y$10$uJ07JS/ED4sfFEQNEgeW/eaqC2L./q9s2vhooaScvUeG4VKCDQw/e');
 
 -- Insert servers
-INSERT or IGNORE INTO servers (id, name, server_id, ssl, ip, port, base_url, token) VALUES (1, 'Server 1', 'server1', 1, '192.168.56.103', 443, 'dashboard', 'BDfsdP5d575xd4xsdpBr9eD1XWe5');
-INSERT or IGNORE INTO servers (id, name, server_id, ssl, ip, port, base_url, token) VALUES (2, 'Server 2', 'server2', 1, '192.168.56.102', 443, 'dashboard', 'BDfsdP5d575xd4xsdpBr9eD1XWe5');
+INSERT or IGNORE INTO servers (id, name, server_id, ssl, ip, port, path, token) VALUES (1, 'Server 1', 'server1', 1, '192.168.56.103', 443, 'dashboard', 'BDfsdP5d575xd4xsdpBr9eD1XWe5');
+INSERT or IGNORE INTO servers (id, name, server_id, ssl, ip, port, path, token) VALUES (2, 'Server 2', 'server2', 1, '192.168.56.102', 443, 'dashboard', 'BDfsdP5d575xd4xsdpBr9eD1XWe5');

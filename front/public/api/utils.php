@@ -111,4 +111,54 @@ function isSELinuxActive() {
     }
 }
 
+function getToken($url, $token)
+{    
+    $serverStatus = getServersStatus($url, $token);
+    if ($serverStatus == 1) {
+        logError(['error' => 'Server error', 'message' => 'Server is not running']);
+        return 1;
+    }
+    $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    $header = substr($data, 0, $header_size);
+    $body = substr($data, $header_size);
+    $headers = explode("\n", $header);
+    $accessToken = '';
+    foreach ($headers as $header) {
+        if (strpos($header, 'Authorization: Bearer ') !== false) {
+            $accessToken = str_replace('Authorization: Bearer ', '', $header);
+        }
+    }
+    return ['status' => 'running', 'token' => $accessToken];   
+}
+
+function getServersStatus($url, $token, $skip_redirects = 0)
+{
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_HEADER, true); // get the header
+    //curl_setopt($ch, CURLOPT_NOBODY, true); // and *only* the header
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // SSL: self-signed certificate
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // SSL: cn verification
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $token));
+    $data = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($httpcode == 301 || $httpcode == 302 && $skip_redirects == 0) {
+        $new_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+        if ($new_url) {
+            return getServersStatus($new_url, $token, 1);
+        }
+    }
+    if (curl_errno($ch)) {
+        logError(['error' => 'Curl error', 'message' => curl_error($ch)]);
+        return 1;
+    }
+    curl_close($ch);
+    if ($httpcode == 200) {
+        return ['status' => 'running', 'data' => $data];
+    } else {
+        return 1;
+    }
+}
 ?>
